@@ -34,6 +34,7 @@
 
 #include <fstream> // for file I/O
 #include <vector>  // for vector
+#include <cmath>   // for math
 
 #include "mniemeyer.cpp"
 #include "kduong.cpp"
@@ -53,10 +54,19 @@ glm::vec2 mousePos;			  // last known X and Y of the mouse
 
 glm::vec3 camPos;			  // camera position in cartesian coordinates
 float cameraTheta, cameraPhi; // camera DIRECTION in spherical coordinates
-glm::vec3 camDir;			  // camera DIRECTION in cartesian coordinates
+glm::vec3 camDir = glm::vec3(0,0,0);			  // camera DIRECTION in cartesian coordinates
 float camZoom;
 
 GLuint environmentDL; // display list for the 'city'
+
+// Global for Coaster in RCT
+vector<glm::vec3> coasterPoints;
+vector<glm::vec3> coasterPath;
+int iteratorKD = 0;
+
+// Global for Cameras in RCT
+int cameraNumber = 1;
+bool FPV = false;
 
 //*************************************************************************************
 //
@@ -79,9 +89,17 @@ float getRand() { return rand() / (float)RAND_MAX; }
 
 void recomputeOrientation()
 {
-	camPos = glm::vec3(camZoom * glm::sin(cameraTheta) * glm::sin(cameraPhi),
-					   -camZoom * glm::cos(cameraPhi),
-					   -camZoom * glm::cos(cameraTheta) * glm::sin(cameraPhi));
+	if (cameraNumber == 4)
+	{
+		camDir = glm::vec3(sin(cameraTheta) * sin(cameraPhi), -cos(cameraPhi), -cos(cameraTheta) * sin(cameraPhi));
+		camDir = glm::normalize(camDir);
+	}
+	else
+	{
+		camPos = glm::vec3(camZoom * glm::sin(cameraTheta) * glm::sin(cameraPhi),
+						   -camZoom * glm::cos(cameraPhi),
+						   -camZoom * glm::cos(cameraTheta) * glm::sin(cameraPhi));
+	}
 }
 
 //*************************************************************************************
@@ -127,6 +145,21 @@ static void keyboard_callback(GLFWwindow *window, int key, int scancode, int act
 		case GLFW_KEY_C:
 			showControl = !showControl;
 			break;
+		case GLFW_KEY_1:
+			cameraNumber = 1;
+			recomputeOrientation();
+			break;
+		case GLFW_KEY_2:
+			cameraNumber = 2;
+			recomputeOrientation();
+			break;
+		case GLFW_KEY_3:
+			cameraNumber = 3;
+			recomputeOrientation();
+			break;
+		case GLFW_KEY_4:
+			cameraNumber = 4;
+			recomputeOrientation();
 		}
 	}
 
@@ -153,6 +186,17 @@ static void keyboard_callback(GLFWwindow *window, int key, int scancode, int act
 			break;
 		}
 	}
+	if (action == GLFW_PRESS || action == GLFW_REPEAT)
+	{
+		switch (key)
+		{
+		case GLFW_KEY_UP:
+			camPos += camDir * 5.0f;
+			break;
+		case GLFW_KEY_DOWN:
+			camPos -= camDir * 5.0f;
+		}
+	}
 }
 
 // cursor_callback() ///////////////////////////////////////////////////////////
@@ -170,7 +214,7 @@ static void cursor_callback(GLFWwindow *window, double x, double y)
 	{
 		if (control == GLFW_PRESS || control == GLFW_REPEAT)
 		{
-			camZoom += (y - mousePos.y) * 0.01;
+			camZoom += (y - mousePos.y) * 0.1;
 		}
 		else
 		{
@@ -288,6 +332,33 @@ void generateEnvironmentDL()
 	glEndList();
 }
 
+void drawCoasterTrack()
+{
+	glDisable(GL_LIGHTING);
+	glLineWidth(5.0f);
+	for (unsigned int i = 0; i < coasterPoints.size() - 3; i += 3)
+	{
+		glm::vec3 v1 = coasterPoints.at(i);
+		glm::vec3 v2 = coasterPoints.at(i + 1);
+		glm::vec3 v3 = coasterPoints.at(i + 2);
+		glm::vec3 v4 = coasterPoints.at(i + 3);
+		renderBezierCurve(v1, v2, v3, v4, 10);
+	}
+	glLineWidth(1.0f);
+	glEnable(GL_LIGHTING);
+}
+
+void updateKhanh()
+{
+	iteratorKD = (iteratorKD + 1) % coasterPath.size();
+	carPos = coasterPath.at(iteratorKD); // Updating Khanh's car, so camera can follow and to travel the track
+
+	// Updating Khanh's car direction
+	glm::vec3 v1 = coasterPath.at((iteratorKD + 1) % coasterPath.size());
+	glm::vec3 v2 = coasterPath.at(iteratorKD);
+	carDir = acos(dot(v1, v2) / (length(v1) * length(v2))) * 180.0f / 3.14f;
+}
+
 //
 //	void renderScene()
 //
@@ -296,8 +367,12 @@ void generateEnvironmentDL()
 void renderScene(void)
 {
 	glCallList(environmentDL);
+	drawCoasterTrack();
 	drawMN();
+
+	updateKhanh();
 	drawKD();
+
 	drawMV();
 }
 
@@ -429,11 +504,14 @@ void setupScene()
 int main(int argc, char *argv[])
 {
 
-	//Read control points from CSV file
+	// Read control points from CSV file
 
 	loadControlPointsMN("controlPoints.csv");
 	loadControlPointsKD("controlPointsSpiral.csv");
 	loadControlPointsMV("controlPoints13.csv");
+
+	// Read Coaster Path, create path vector
+	loadControlPointsKD("CoasterPoints.csv", coasterPoints, coasterPath);
 
 	// GLFW sets up our OpenGL context so must be done first
 	GLFWwindow *window = setupGLFW(); // initialize all of the GLFW specific information releated to OpenGL and our window
@@ -495,7 +573,18 @@ int main(int argc, char *argv[])
 		glLoadIdentity();			// set the matrix to be the identity
 
 		// set up our look at matrix to position our camera
-		glm::mat4 viewMtx = glm::lookAt(camPos + vLoc, vLoc, glm::vec3(0, 1, 0));
+		glm::mat4 viewMtx;
+		switch (cameraNumber)
+		{
+		case 1:
+			viewMtx = glm::lookAt(camPos + vLoc, vLoc, glm::vec3(0, 1, 0));
+			break;
+		case 2:
+			viewMtx = glm::lookAt(camPos + carPos, carPos, glm::vec3(0, 1, 0));
+			break;
+		case 4:
+			viewMtx = glm::lookAt(camPos, camPos + camDir, glm::vec3(0, 1, 0));
+		}
 		// multiply by the look at matrix - this is the same as our view martix
 		glMultMatrixf(&viewMtx[0][0]);
 

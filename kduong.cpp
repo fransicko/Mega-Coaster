@@ -74,7 +74,6 @@ void renderBezierCurve(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, i
 		nxt = evaluateBezierCurve(p0, p1, p2, p3, t);
 		glBegin(GL_LINES);
 		{
-			glColor3f(0, 0, 1);
 			glVertex3f(point.x, point.y, point.z);
 			glVertex3f(nxt.x, nxt.y, nxt.z);
 		};
@@ -157,6 +156,23 @@ void populatePath()
 	}
 }
 
+void populatePath(vector<glm::vec3> &cPoints, vector<glm::vec3> &cPath)
+{
+	for (unsigned int i = 0; i < cPoints.size() - 3; i += 3)
+	{
+		glm::vec3 v1 = cPoints.at(i);
+		glm::vec3 v2 = cPoints.at(i + 1);
+		glm::vec3 v3 = cPoints.at(i + 2);
+		glm::vec3 v4 = cPoints.at(i + 3);
+		// Might look weird, ran into trouble with <= because of float precision, resorted to just <
+		for (float t = 0; t < 1.0f + 1.0f / 100.0f; t += 1.0f / 100.0f)
+		{
+			glm::vec3 nxt = evaluateBezierCurve(v1, v2, v3, v4, t);
+			cPath.push_back(nxt);
+		}
+	}
+}
+
 //*************************************************************************************
 //
 bool loadControlPointsKD(char *filename)
@@ -214,6 +230,65 @@ bool loadControlPointsKD(char *filename)
 	}
 	input.close();
 	populatePath();
+
+	return true;
+}
+
+bool loadControlPointsKD(char *filename, vector<glm::vec3> &cPoints, vector<glm::vec3> &cPath)
+{
+	// TODO #02: read in control points from file.  Make sure the file can be
+	// opened and handle it appropriately.
+
+	// Sanity check
+	fprintf(stdout, "LOADING ");
+	fprintf(stdout, filename);
+	fprintf(stdout, "...\n\n\n");
+
+	// Checking if it is .csv
+	string extension = "@@@@";
+	for (int i = 0; i < 4; i++)
+	{
+		extension[i] = filename[strlen(filename) - 4 + i];
+	}
+
+	if (extension != ".csv")
+	{
+		fprintf(stderr, "[ERROR]: INVALID FILE TYPE. ENSURE IT IS A .CSV\n");
+		exit(EXIT_FAILURE);
+	}
+
+	ifstream input(filename);
+	string line;
+
+	// Checking if file exists and was sucessfully opened
+	if (!input.is_open())
+	{
+		fprintf(stderr, "[ERROR]: UNABLE TO OPEN FILE\n");
+		exit(EXIT_FAILURE);
+	}
+
+	int n = 0;
+	input >> n;
+	for (int i = 0; i < n; i++)
+	{
+		string a, b, c;
+		getline(input, a, ',');
+		getline(input, b, ',');
+		getline(input, c);
+
+		stringstream aa(a);
+		stringstream bb(b);
+		stringstream cc(c);
+
+		int x, y, z = 0;
+		aa >> x;
+		bb >> y;
+		cc >> z;
+
+		cPoints.push_back(glm::vec3(x, y, z));
+	}
+	input.close();
+	populatePath(cPoints, cPath);
 
 	return true;
 }
@@ -451,7 +526,7 @@ void drawMascotk()
 
 void drawKD()
 {
-	// Drawing the control points, cage, and bezier curve
+
 	glm::mat4 transMtx = glm::translate(glm::mat4(), carPos);
 	glMultMatrixf(&transMtx[0][0]);
 	{
