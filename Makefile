@@ -21,13 +21,13 @@
 ##
 ########################################
 
-TARGET = rct 
+TARGET = rct
 OBJECTS = main.o
 
-LOCAL_INC_PATH = C:/MinGW/include
-LOCAL_LIB_PATH = C:/lib
+LOCAL_INC_PATH = /Users/jpaone/Desktop/include
+LOCAL_LIB_PATH = /Users/jpaone/Desktop/lib
 
-BUILDING_IN_LAB =  0
+BUILDING_IN_LAB = 1
 
 #########################################################################################
 #########################################################################################
@@ -48,8 +48,8 @@ BUILDING_IN_LAB =  0
 CXX    = g++
 CFLAGS = -Wall -g
 
-LAB_INC_PATH = Z:/CSCI441/include
-LAB_LIB_PATH = Z:/CSCI441/lib
+LAB_INC_PATH = X:/School/CSCI441/include
+LAB_LIB_PATH = X:/School/CSCI441/lib
 
 # if we are not building in the Lab
 ifeq ($(BUILDING_IN_LAB), 0)
@@ -58,7 +58,7 @@ ifeq ($(BUILDING_IN_LAB), 0)
     LAB_INC_PATH = $(LOCAL_INC_PATH)
     LAB_LIB_PATH = $(LOCAL_LIB_PATH)
 else
-	CXX = C:/Rtools/mingw_64/bin/g++.exe
+	CXX = X:/mingw64/bin/g++.exe
 endif
 
 INCPATH += -I$(LAB_INC_PATH)
