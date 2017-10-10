@@ -545,12 +545,9 @@ void drawKD()
 			drawCar();
 			drawCurvek();
 
-			iter = (iter + 1) % mascotPath.size();
-			wheelAng = fmod((wheelAng + 10.0f), 360.0f);
 			glm::mat4 pathMtx = glm::translate(glm::mat4(), mascotPath.at(iter));
 			glMultMatrixf(&pathMtx[0][0]);
 			{
-				mascotAngle = fmod((mascotAngle + .1f), 360.0f);
 				glm::mat4 barrellMtx = glm::rotate(glm::mat4(), mascotAngle, glm::vec3(0.0f, 0.0f, 1.0f));
 				glMultMatrixf(&barrellMtx[0][0]);
 				{

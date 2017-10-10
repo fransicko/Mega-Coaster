@@ -610,6 +610,4 @@ void drawMV()
     }
     controlPoint = controlPath.at(path);
     drawCarM();
-
-    ++path;
 }

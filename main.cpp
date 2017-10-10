@@ -311,9 +311,11 @@ void renderBezierPatch()
 {
 	glm::vec3 point, du, dv, cross;
 	glColor3f(1, 1, 1);
-	for(float u = 0; u < 1; u += 0.05){
+	for (float u = 0; u < 1; u += 0.05)
+	{
 		glBegin(GL_TRIANGLE_STRIP);
-		for(float v = 0; v < 1; v += 0.05){
+		for (float v = 0; v < 1; v += 0.05)
+		{
 			glNormal3f(0, 1, 0);
 			point = evaluateBezierPatch(u, v);
 			du = duPatch(u, v);
@@ -321,10 +323,10 @@ void renderBezierPatch()
 			cross = glm::cross(dv, du);
 			glNormal3f(cross.x, cross.y, cross.z);
 			glVertex3f(point.x, point.y, point.z);
-			
-			point = evaluateBezierPatch(u+0.05, v);
-			du = duPatch(u+0.05, v);
-			dv = dvPatch(u+0.05, v);
+
+			point = evaluateBezierPatch(u + 0.05, v);
+			du = duPatch(u + 0.05, v);
+			dv = dvPatch(u + 0.05, v);
 			cross = glm::cross(dv, du);
 			glNormal3f(cross.x, cross.y, cross.z);
 			glVertex3f(point.x, point.y, point.z);
@@ -372,6 +374,10 @@ void drawCoasterTrack()
 
 void updateKhanh()
 {
+	iter = (iter + 1) % mascotPath.size();
+	wheelAng = fmod((wheelAng + 10.0f), 360.0f);
+	mascotAngle = fmod((mascotAngle + .1f), 360.0f);
+
 	iteratorKD = (iteratorKD + 1) % coasterPath.size();
 	carPos = coasterPath.at(iteratorKD); // Updating Khanh's car, so camera can follow and to travel the track
 
@@ -393,6 +399,11 @@ void updateKhanh()
 	prevDir = newDir;
 }
 
+void updateMike()
+{
+	++path;
+}
+
 //
 //	void renderScene()
 //
@@ -404,7 +415,6 @@ void renderScene(void)
 	drawCoasterTrack();
 	drawMN();
 
-	updateKhanh();
 	drawKD();
 
 	drawMV();
@@ -526,20 +536,21 @@ void setupScene()
 	generateEnvironmentDL();
 }
 
-void moveVehicle(){
+void moveVehicle()
+{
 	if (vMove != 0)
+	{
+		glm::vec3 vLocTest = vLoc + (float)vMove * vDir * 0.1f;
+		if (vLocTest.x > -30 && vLocTest.x < 30 && vLocTest.z > -30 && vLocTest.z < 30)
 		{
-			glm::vec3 vLocTest = vLoc + (float)vMove * vDir * 0.1f;
-			if (vLocTest.x > -30 && vLocTest.x < 30 && vLocTest.z > -30 && vLocTest.z < 30)
-			{
-				if (aRot > 2.0f * M_PI && vMove > 0)
-					aRot = 0.0f;
-				if (aRot < -2.0f * M_PI && vMove < 0)
-					aRot = 0.0f;
-				aRot -= vMove * 0.07;
-				vLoc = vLocTest;
-			}
+			if (aRot > 2.0f * M_PI && vMove > 0)
+				aRot = 0.0f;
+			if (aRot < -2.0f * M_PI && vMove < 0)
+				aRot = 0.0f;
+			aRot -= vMove * 0.07;
+			vLoc = vLocTest;
 		}
+	}
 }
 
 ///*************************************************************************************
@@ -588,6 +599,9 @@ int main(int argc, char *argv[])
 			vTheta += vRot * 0.05f;
 			recomputeVehicleDirection();
 		}
+
+		// Update global constants for animation
+		updateKhanh();
 
 		// update the projection matrix based on the window size
 		// the GL_PROJECTION matrix governs properties of the view coordinates;
@@ -650,11 +664,11 @@ int main(int argc, char *argv[])
 				fpvMtx = glm::lookAt(vLoc + glm::vec3(0, .5, 0), vLoc + vDir + glm::vec3(0, .5, 0), glm::vec3(0, 1, 0));
 				break;
 			case 2:
-				t = glm::vec3(glm::sin(carDir*3.14f/180.0f), 0, glm::cos(carDir*3.14f/180.0f));
+				t = glm::vec3(glm::sin(carDir * 3.14f / 180.0f), 0, glm::cos(carDir * 3.14f / 180.0f));
 				fpvMtx = glm::lookAt(carPos + glm::vec3(0, 1.95, 0), carPos + t + glm::vec3(0, 1.95, 0), glm::vec3(0, 1, 0));
 				break;
 			case 3:
-				t = glm::vec3(glm::sin(carTheta*3.14f/180.0f), 0, glm::cos(carTheta*3.14f/180.0f));
+				t = glm::vec3(glm::sin(carTheta * 3.14f / 180.0f), 0, glm::cos(carTheta * 3.14f / 180.0f));
 				fpvMtx = glm::lookAt(carPosM + glm::vec3(0, 1, 0), carPosM + t + glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 				break;
 			}
