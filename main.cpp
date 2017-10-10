@@ -47,7 +47,7 @@ using namespace std;
 // global variables to keep track of window width and height.
 // set to initial values for convenience, but we need variables
 // for later on in case the window gets resized.
-int windowWidth = 640, windowHeight = 480;
+int windowWidth = 800, windowHeight = 600;
 
 int leftMouseButton, control; // status of the mouse button and control
 glm::vec2 mousePos;			  // last known X and Y of the mouse
@@ -251,40 +251,6 @@ static void mouse_button_callback(GLFWwindow *window, int button, int action, in
 //
 // Rendering / Drawing Functions - this is where the magic happens!
 
-// drawGrid() //////////////////////////////////////////////////////////////////
-//
-//  Function to draw a grid in the XZ-Plane using OpenGL 2D Primitives (GL_LINES)
-//
-////////////////////////////////////////////////////////////////////////////////
-void drawGrid()
-{
-	/*
-     *	We will get to why we need to do this when we talk about lighting,
-     *	but for now whenever we want to draw something with an OpenGL
-     *	Primitive - like a line, quad, point - we need to disable lighting
-     *	and then reenable it for use with the CSCI441 3D Objects.
-     */
-	glDisable(GL_LIGHTING);
-
-	/** TODO #3: DRAW A GRID IN THE XZ-PLANE USING GL_LINES **/
-	for (int i = -50; i < 50; i++)
-	{
-		glColor3f(1.0, 1.0, 1.0);
-		glBegin(GL_LINES);
-		glVertex3f(i, 0, 50);
-		glVertex3f(i, 0, -50);
-		glVertex3f(50, 0, i);
-		glVertex3f(-50, 0, i);
-		glEnd();
-	}
-
-	/*
-     *	As noted above, we are done drawing with OpenGL Primitives, so we
-     *	must turn lighting back on.
-     */
-	glEnable(GL_LIGHTING);
-}
-
 // drawCity() //////////////////////////////////////////////////////////////////
 //
 //  Function to draw a random city using CSCI441 3D Cubes
@@ -312,6 +278,32 @@ void drawCity()
 	}
 }
 
+void renderBezierPatch()
+{
+	glm::vec3 point, du, dv, cross;
+	glColor3f(1, 1, 1);
+	for(float u = 0; u < 1; u += 0.05){
+		glBegin(GL_TRIANGLE_STRIP);
+		for(float v = 0; v < 1; v += 0.05){
+			glNormal3f(0, 1, 0);
+			point = evaluateBezierPatch(u, v);
+			du = duPatch(u, v);
+			dv = dvPatch(u, v);
+			cross = glm::cross(dv, du);
+			glNormal3f(cross.x, cross.y, cross.z);
+			glVertex3f(point.x, point.y, point.z);
+			
+			point = evaluateBezierPatch(u+0.05, v);
+			du = duPatch(u+0.05, v);
+			dv = dvPatch(u+0.05, v);
+			cross = glm::cross(dv, du);
+			glNormal3f(cross.x, cross.y, cross.z);
+			glVertex3f(point.x, point.y, point.z);
+		}
+		glEnd();
+	}
+}
+
 // generateEnvironmentDL() /////////////////////////////////////////////////////
 //
 //  This function creates a display list with the code to draw a simple
@@ -328,7 +320,8 @@ void generateEnvironmentDL()
 	environmentDL = glGenLists(1);
 	glNewList(environmentDL, GL_COMPILE);
 	//drawCity();
-	drawGrid();
+	//drawGrid();
+	renderBezierPatch();
 	glEndList();
 }
 
@@ -492,6 +485,22 @@ void setupScene()
 	generateEnvironmentDL();
 }
 
+void moveVehicle(){
+	if (vMove != 0)
+		{
+			glm::vec3 vLocTest = vLoc + (float)vMove * vDir * 0.1f;
+			if (vLocTest.x > -30 && vLocTest.x < 30 && vLocTest.z > -30 && vLocTest.z < 30)
+			{
+				if (aRot > 2.0f * M_PI && vMove > 0)
+					aRot = 0.0f;
+				if (aRot < -2.0f * M_PI && vMove < 0)
+					aRot = 0.0f;
+				aRot -= vMove * 0.07;
+				vLoc = vLocTest;
+			}
+		}
+}
+
 ///*************************************************************************************
 //
 // Our main function
@@ -527,22 +536,10 @@ int main(int argc, char *argv[])
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the current color contents and depth buffer in the window
 
 		//Move the vehicle if it will stay within the boundry of the grid
-		if (vMove != 0)
-		{
-			glm::vec3 vLocTest = vLoc + (float)vMove * vDir * 0.1f;
-			if (vLocTest.x > -50 && vLocTest.x < 50 && vLocTest.z > -50 && vLocTest.z < 50)
-			{
-				if (aRot > 2.0f * M_PI && vMove > 0)
-					aRot = 0.0f;
-				if (aRot < -2.0f * M_PI && vMove < 0)
-					aRot = 0.0f;
-				aRot -= vMove * 0.07;
-				vLoc = vLocTest;
-			}
-		}
+		moveVehicle();
 
-		moveMascot();
-		rotateCurve();
+		//moveMascot();
+		//rotateCurve();
 
 		//Change the angle of the vehicle
 		if (vRot != 0)
