@@ -52,9 +52,9 @@ int windowWidth = 640, windowHeight = 480;
 int leftMouseButton, control; // status of the mouse button and control
 glm::vec2 mousePos;			  // last known X and Y of the mouse
 
-glm::vec3 camPos;			  // camera position in cartesian coordinates
-float cameraTheta, cameraPhi; // camera DIRECTION in spherical coordinates
-glm::vec3 camDir = glm::vec3(0,0,0);			  // camera DIRECTION in cartesian coordinates
+glm::vec3 camPos;					   // camera position in cartesian coordinates
+float cameraTheta, cameraPhi;		   // camera DIRECTION in spherical coordinates
+glm::vec3 camDir = glm::vec3(0, 0, 0); // camera DIRECTION in cartesian coordinates
 float camZoom;
 
 GLuint environmentDL; // display list for the 'city'
@@ -63,9 +63,12 @@ GLuint environmentDL; // display list for the 'city'
 vector<glm::vec3> coasterPoints;
 vector<glm::vec3> coasterPath;
 int iteratorKD = 0;
+float prevDir = 0;
 
 // Global for Cameras in RCT
 int cameraNumber = 1;
+int fpvCamera = 1;
+glm::vec3 fpvPos;
 bool FPV = false;
 
 //*************************************************************************************
@@ -96,9 +99,10 @@ void recomputeOrientation()
 	}
 	else
 	{
-		camPos = glm::vec3(camZoom * glm::sin(cameraTheta) * glm::sin(cameraPhi),
+		camDir = glm::vec3(camZoom * sin(cameraTheta) * sin(cameraPhi), camZoom * -cos(cameraPhi), camZoom * -cos(cameraTheta) * sin(cameraPhi));
+		/*camPos = glm::vec3(camZoom * glm::sin(cameraTheta) * glm::sin(cameraPhi),
 						   -camZoom * glm::cos(cameraPhi),
-						   -camZoom * glm::cos(cameraTheta) * glm::sin(cameraPhi));
+						   -camZoom * glm::cos(cameraTheta) * glm::sin(cameraPhi));*/
 	}
 }
 
@@ -144,6 +148,15 @@ static void keyboard_callback(GLFWwindow *window, int key, int scancode, int act
 			break;
 		case GLFW_KEY_C:
 			showControl = !showControl;
+			hideControlPoint = !hideControlPoint;
+			hideControlCage = !hideControlCage;
+			hideControlPath = !hideControlPath;
+			point = !point;
+			connection = !connection;
+			curve = !curve;
+			break;
+		case GLFW_KEY_F:
+			FPV = !FPV;
 			break;
 		case GLFW_KEY_1:
 			cameraNumber = 1;
@@ -159,6 +172,18 @@ static void keyboard_callback(GLFWwindow *window, int key, int scancode, int act
 			break;
 		case GLFW_KEY_4:
 			cameraNumber = 4;
+			recomputeOrientation();
+			break;
+		case GLFW_KEY_J:
+			fpvCamera = 1;
+			recomputeOrientation();
+			break;
+		case GLFW_KEY_K:
+			fpvCamera = 2;
+			recomputeOrientation();
+			break;
+		case GLFW_KEY_L:
+			fpvCamera = 3;
 			recomputeOrientation();
 		}
 	}
@@ -214,16 +239,20 @@ static void cursor_callback(GLFWwindow *window, double x, double y)
 	{
 		if (control == GLFW_PRESS || control == GLFW_REPEAT)
 		{
-			camZoom += (y - mousePos.y) * 0.1;
+			camZoom += .25 * (mousePos.y - y);
+			if (camZoom < 5)
+				camZoom = 5;
 		}
 		else
 		{
-			cameraTheta -= (x - mousePos.x) * 0.005;
-			float newPhi = cameraPhi - (y - mousePos.y) * 0.005;
-			if (newPhi > 0 && newPhi < M_PI)
-			{
-				cameraPhi = newPhi;
-			}
+			cameraTheta += 0.005 * (x - mousePos.x);
+			cameraPhi += 0.005 * (mousePos.y - y);
+			if (cameraPhi > M_PI)
+				cameraPhi = M_PI - 0.0001;
+			else if (cameraPhi < M_PI / 2 && cameraNumber != 4)
+				cameraPhi = M_PI / 2;
+			else if (cameraPhi < 0 && cameraNumber == 4)
+				cameraPhi = 0.0001;
 		}
 		recomputeOrientation(); // update camera (x,y,z) based on (theta,phi)
 	}
@@ -356,7 +385,19 @@ void updateKhanh()
 	// Updating Khanh's car direction
 	glm::vec3 v1 = coasterPath.at((iteratorKD + 1) % coasterPath.size());
 	glm::vec3 v2 = coasterPath.at(iteratorKD);
-	carDir = acos(dot(v1, v2) / (length(v1) * length(v2))) * 180.0f / 3.14f;
+	glm::vec3 v3 = v2 - v1;
+	// Restricting dot product / magnitude to 2D, y shouldn't affect rotation
+	// Also, take into account acos goes only from 0 to 180
+	float newDir = acos((v3.x * 0 + v3.z * -1) / sqrt(v3.x * v3.x + v3.z * v3.z)) * 180.0f / 3.14f;
+	if (newDir > prevDir)
+	{
+		carDir = 360.0f - newDir;
+	}
+	else
+	{
+		carDir = newDir;
+	}
+	prevDir = newDir;
 }
 
 //
@@ -577,10 +618,16 @@ int main(int argc, char *argv[])
 		switch (cameraNumber)
 		{
 		case 1:
-			viewMtx = glm::lookAt(camPos + vLoc, vLoc, glm::vec3(0, 1, 0));
+			camPos = vLoc + camDir;
+			viewMtx = glm::lookAt(camPos, vLoc, glm::vec3(0, 1, 0));
 			break;
 		case 2:
-			viewMtx = glm::lookAt(camPos + carPos, carPos, glm::vec3(0, 1, 0));
+			camPos = carPos + camDir;
+			viewMtx = glm::lookAt(camPos, carPos, glm::vec3(0, 1, 0));
+			break;
+		case 3:
+			camPos = carPosM + camDir;
+			viewMtx = glm::lookAt(camPos, carPosM, glm::vec3(0, 1, 0));
 			break;
 		case 4:
 			viewMtx = glm::lookAt(camPos, camPos + camDir, glm::vec3(0, 1, 0));
@@ -589,6 +636,36 @@ int main(int argc, char *argv[])
 		glMultMatrixf(&viewMtx[0][0]);
 
 		renderScene(); // draw everything to the window
+		if (FPV)
+		{
+			glEnable(GL_SCISSOR_TEST);
+			glScissor(0, 0, 200, 200);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+
+			glViewport(0, 0, 200, 200); // to draw minimap
+			glm::mat4 fpvMtx;
+			glm::vec3 t;
+			switch (fpvCamera)
+			{
+			case 1:
+				fpvMtx = glm::lookAt(vLoc + glm::vec3(0, .5, 0), vLoc + vDir + glm::vec3(0, .5, 0), glm::vec3(0, 1, 0));
+				break;
+			case 2:
+				t = glm::vec3(glm::sin(carDir*3.14f/180.0f), 0, glm::cos(carDir*3.14f/180.0f));
+				fpvMtx = glm::lookAt(carPos + glm::vec3(0, 1.95, 0), carPos + t + glm::vec3(0, 1.95, 0), glm::vec3(0, 1, 0));
+				break;
+			case 3:
+				t = glm::vec3(glm::sin(carTheta*3.14f/180.0f), 0, glm::cos(carTheta*3.14f/180.0f));
+				fpvMtx = glm::lookAt(carPosM + glm::vec3(0, 1, 0), carPosM + t + glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+				break;
+			}
+			glMultMatrixf(&fpvMtx[0][0]);
+
+			renderScene();
+			glDisable(GL_SCISSOR_TEST);
+		}
 
 		glfwSwapBuffers(window); // flush the OpenGL commands and make sure they get rendered!
 		glfwPollEvents();		 // check for any events and signal to redraw screen

@@ -126,6 +126,7 @@ void drawCurvek()
 	{
 		glDisable(GL_LIGHTING);
 		glLineWidth(5.0f);
+		glColor3f(0, 0, 1);
 		for (unsigned int i = 0; i < controlPointsk.size() - 3; i += 3)
 		{
 			glm::vec3 v1 = controlPointsk.at(i);
@@ -165,7 +166,7 @@ void populatePath(vector<glm::vec3> &cPoints, vector<glm::vec3> &cPath)
 		glm::vec3 v3 = cPoints.at(i + 2);
 		glm::vec3 v4 = cPoints.at(i + 3);
 		// Might look weird, ran into trouble with <= because of float precision, resorted to just <
-		for (float t = 0; t < 1.0f + 1.0f / 100.0f; t += 1.0f / 100.0f)
+		for (float t = 0; t < 1.0f + 1.0f / 200.0f; t += 1.0f / 200.0f)
 		{
 			glm::vec3 nxt = evaluateBezierCurve(v1, v2, v3, v4, t);
 			cPath.push_back(nxt);
@@ -545,6 +546,7 @@ void drawKD()
 			drawCurvek();
 
 			iter = (iter + 1) % mascotPath.size();
+			wheelAng = fmod((wheelAng + 10.0f), 360.0f);
 			glm::mat4 pathMtx = glm::translate(glm::mat4(), mascotPath.at(iter));
 			glMultMatrixf(&pathMtx[0][0]);
 			{

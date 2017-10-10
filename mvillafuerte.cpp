@@ -531,6 +531,7 @@ void drawCurveM()
     {
         glColor3f(1.000, 1.000, 0.000);
         glLineWidth(6.0);
+        glDisable(GL_LIGHTING);
         glBegin(GL_LINE_STRIP);
         {
             for (int i = 0; i < numSegments; ++i)
@@ -539,16 +540,22 @@ void drawCurveM()
             }
         };
         glEnd();
+        glLineWidth(1.0);
     }
 
     // TODO #05: Draw the Bezier Curve!
     if (hideControlPath)
     {
+        glDisable(GL_LIGHTING);
+        glLineWidth(6.0);
+        glColor3f(0, 0, 1);
         for (int i = 0; i < numSegments - 1; i += 3)
         {
             renderBezierCurve(controlPointsM.at(i), controlPointsM.at(i + 1), controlPointsM.at(i + 2),
                               controlPointsM.at(i + 3), 100);
         }
+        glEnable(GL_LIGHTING);
+        glLineWidth(1.0);
     }
 }
 
