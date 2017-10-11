@@ -353,7 +353,7 @@ void drawCoasterTrack()
 {
 	glDisable(GL_LIGHTING);
 	glLineWidth(5.0f);
-	glColor3f(1,0,1);
+	glColor3f(1,1,0);
 	for (unsigned int i = 0; i < coasterPoints.size() - 3; i += 3)
 	{
 		glm::vec3 v1 = coasterPoints.at(i);
@@ -365,8 +365,22 @@ void drawCoasterTrack()
 	glLineWidth(1.0f);
 	glEnable(GL_LIGHTING);
 	
-	for (unsigned int i = 0; i < coasterPath.size(); i+=2) {
-		
+	for (unsigned int i = 0; i < coasterPath.size(); i++) {
+
+		glm::mat4 transMtx = glm::translate(glm::mat4(), coasterPath.at(i));
+		glMultMatrixf(&transMtx[0][0]);
+		{
+				glm::mat4 scaleMtx = glm::scale(glm::mat4(), glm::vec3(10, 1, 10));
+	glMultMatrixf(&scaleMtx[0][0]);
+	{
+			//glColor3f(216.0/255.0,101.0/255.0,101.0/255.0);
+			glColor3f(1, 1, 0);
+			CSCI441::drawSolidCube(.1);
+				};
+	glMultMatrixf(&(glm::inverse(scaleMtx))[0][0]);
+		};
+		glMultMatrixf(&(glm::inverse(transMtx))[0][0]);
+
 	}
 }
 
