@@ -402,6 +402,7 @@ void updateKhanh()
 void updateMike()
 {
 	++path;
+	//cout << "Main path: " << path << endl;
 }
 
 //
@@ -602,6 +603,7 @@ int main(int argc, char *argv[])
 
 		// Update global constants for animation
 		updateKhanh();
+		updateMike();
 
 		// update the projection matrix based on the window size
 		// the GL_PROJECTION matrix governs properties of the view coordinates;
