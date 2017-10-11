@@ -142,6 +142,7 @@ void drawCurvek()
 
 void populatePath()
 {
+	int maxSegment = 100;
 	for (unsigned int i = 0; i < controlPointsk.size() - 3; i += 3)
 	{
 		glm::vec3 v1 = controlPointsk.at(i);
@@ -149,8 +150,9 @@ void populatePath()
 		glm::vec3 v3 = controlPointsk.at(i + 2);
 		glm::vec3 v4 = controlPointsk.at(i + 3);
 		// Might look weird, ran into trouble with <= because of float precision, resorted to just <
-		for (float t = 0; t < 1.0f + 1.0f / 100.0f; t += 1.0f / 100.0f)
+		for (int j = 0; j < maxSegment; j++)
 		{
+			float t = (float)j / (float)maxSegment;
 			glm::vec3 nxt = evaluateBezierCurve(v1, v2, v3, v4, t);
 			mascotPath.push_back(nxt);
 		}
@@ -159,6 +161,7 @@ void populatePath()
 
 void populatePath(vector<glm::vec3> &cPoints, vector<glm::vec3> &cPath)
 {
+	int maxSegment = 200;
 	for (unsigned int i = 0; i < cPoints.size() - 3; i += 3)
 	{
 		glm::vec3 v1 = cPoints.at(i);
@@ -166,8 +169,9 @@ void populatePath(vector<glm::vec3> &cPoints, vector<glm::vec3> &cPath)
 		glm::vec3 v3 = cPoints.at(i + 2);
 		glm::vec3 v4 = cPoints.at(i + 3);
 		// Might look weird, ran into trouble with <= because of float precision, resorted to just <
-		for (float t = 0; t < 1.0f + 1.0f / 200.0f; t += 1.0f / 200.0f)
+		for (int j = 0; j < maxSegment; j++)
 		{
+			float t = (float)j / (float)maxSegment;
 			glm::vec3 nxt = evaluateBezierCurve(v1, v2, v3, v4, t);
 			cPath.push_back(nxt);
 		}

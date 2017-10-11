@@ -353,6 +353,7 @@ void drawCoasterTrack()
 {
 	glDisable(GL_LIGHTING);
 	glLineWidth(5.0f);
+	glColor3f(1,0,1);
 	for (unsigned int i = 0; i < coasterPoints.size() - 3; i += 3)
 	{
 		glm::vec3 v1 = coasterPoints.at(i);
@@ -363,6 +364,10 @@ void drawCoasterTrack()
 	}
 	glLineWidth(1.0f);
 	glEnable(GL_LIGHTING);
+	
+	for (unsigned int i = 0; i < coasterPath.size(); i+=2) {
+		
+	}
 }
 
 void updateKhanh()
@@ -413,7 +418,11 @@ void renderScene(void)
 
 	drawKD();
 
-	if (fpvCamera =! 3 && view =! 2)
+	if (fpvCamera == 3 && view == 2)
+	{
+		// Do Nothing
+	}
+	else
 	{
 		drawMV();
 	}
@@ -547,7 +556,7 @@ int main(int argc, char *argv[])
 {
 
 	// Read control points from CSV file
-
+	
 	loadControlPointsMN("controlPoints.csv");
 	loadControlPointsKD("controlPointsSpiral.csv");
 	loadControlPointsMV("controlPoints13.csv");
@@ -645,7 +654,7 @@ int main(int argc, char *argv[])
 			switch (fpvCamera)
 			{
 			case 1:
-				fpvMtx = glm::lookAt(vLoc + glm::vec3(0, .5, 0), vLoc + vDir + glm::vec3(0, .5, 0), glm::vec3(0, 1, 0));
+				fpvMtx = glm::lookAt(vLocXYZ + glm::vec3(0, .8, 0), vLocXYZ + vDir + glm::vec3(0, .8, 0), glm::vec3(0, 1, 0));
 				break;
 			case 2:
 				t = glm::vec3(glm::sin(carDir * 3.14f / 180.0f), 0, glm::cos(carDir * 3.14f / 180.0f));
