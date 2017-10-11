@@ -35,7 +35,6 @@ float mascotAngle = 0.0f;
 vector<glm::vec3> mascotPath;
 int iter = 0;
 
-
 // evaluateBezierCurve() ////////////////////////////////////////////////////////
 //
 // Computes a location along a Bezier Curve.

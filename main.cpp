@@ -311,17 +311,19 @@ void drawCity()
 void renderBezierPatch()
 {
 	glm::vec3 point, normal;
-	glColor3f(1, 1, 1);
-	for(float u = 0; u <= 1; u += patchRes){
+	glColor3f(0, .5, 0);
+	for (float u = 0; u <= 1; u += patchRes)
+	{
 		glBegin(GL_TRIANGLE_STRIP);
-		for(float v = 0; v <= 1 + patchRes; v += patchRes){
+		for (float v = 0; v <= 1 + patchRes; v += patchRes)
+		{
 			point = evaluateBezierPatch(u, v);
 			normal = normalPatch(u, v);
 			glNormal3f(normal.x, normal.y, normal.z);
 			glVertex3f(point.x, point.y, point.z);
-			
-			point = evaluateBezierPatch(u+patchRes, v);
-			normal = normalPatch(u+patchRes, v);
+
+			point = evaluateBezierPatch(u + patchRes, v);
+			normal = normalPatch(u + patchRes, v);
 			glNormal3f(normal.x, normal.y, normal.z);
 			glVertex3f(point.x, point.y, point.z);
 		}
@@ -353,7 +355,7 @@ void drawCoasterTrack()
 {
 	glDisable(GL_LIGHTING);
 	glLineWidth(5.0f);
-	glColor3f(1,1,0);
+	glColor3f(1, 1, 0);
 	for (unsigned int i = 0; i < coasterPoints.size() - 3; i += 3)
 	{
 		glm::vec3 v1 = coasterPoints.at(i);
@@ -364,23 +366,23 @@ void drawCoasterTrack()
 	}
 	glLineWidth(1.0f);
 	glEnable(GL_LIGHTING);
-	
-	for (unsigned int i = 0; i < coasterPath.size(); i++) {
+
+	for (unsigned int i = 0; i < coasterPath.size(); i+=5)
+	{
 
 		glm::mat4 transMtx = glm::translate(glm::mat4(), coasterPath.at(i));
 		glMultMatrixf(&transMtx[0][0]);
 		{
-				glm::mat4 scaleMtx = glm::scale(glm::mat4(), glm::vec3(10, 1, 10));
-	glMultMatrixf(&scaleMtx[0][0]);
-	{
-			//glColor3f(216.0/255.0,101.0/255.0,101.0/255.0);
-			glColor3f(1, 1, 0);
-			CSCI441::drawSolidCube(.1);
-				};
-	glMultMatrixf(&(glm::inverse(scaleMtx))[0][0]);
+			glm::mat4 scaleMtx = glm::scale(glm::mat4(), glm::vec3(10, 1, 10));
+			glMultMatrixf(&scaleMtx[0][0]);
+			{
+				//glColor3f(216.0/255.0,101.0/255.0,101.0/255.0);
+				glColor3f(1, 1, 0);
+				CSCI441::drawSolidCube(.1);
+			};
+			glMultMatrixf(&(glm::inverse(scaleMtx))[0][0]);
 		};
 		glMultMatrixf(&(glm::inverse(transMtx))[0][0]);
-
 	}
 }
 
@@ -570,7 +572,7 @@ int main(int argc, char *argv[])
 {
 
 	// Read control points from CSV file
-	
+
 	loadControlPointsMN("controlPoints.csv");
 	loadControlPointsKD("controlPointsSpiral.csv");
 	loadControlPointsMV("controlPoints13.csv");
@@ -594,16 +596,13 @@ int main(int argc, char *argv[])
 		//moveMascot();
 		//rotateCurve();
 		moveVehicle();
-		
-		
+
 		//Change the angle of the vehicle
 		if (vRot != 0)
 		{
 			vTheta += vRot * 0.05f;
 			recomputeVehicleDirection();
 		}
-		
-		
 
 		// Update global constants for animation
 		updateKhanh();
