@@ -64,6 +64,8 @@ vector<glm::vec3> coasterPoints;
 vector<glm::vec3> coasterPath;
 int iteratorKD = 0;
 
+float patchRes = 0.05;
+
 // Global for Cameras in RCT
 int cameraNumber = 1;
 bool FPV = false;
@@ -278,26 +280,22 @@ void drawCity()
 	}
 }
 
+//Render the bezier patch
 void renderBezierPatch()
 {
-	glm::vec3 point, du, dv, cross;
+	glm::vec3 point, normal;
 	glColor3f(1, 1, 1);
-	for(float u = 0; u < 1; u += 0.05){
+	for(float u = 0; u <= 1; u += patchRes){
 		glBegin(GL_TRIANGLE_STRIP);
-		for(float v = 0; v < 1; v += 0.05){
-			glNormal3f(0, 1, 0);
+		for(float v = 0; v <= 1 + patchRes; v += patchRes){
 			point = evaluateBezierPatch(u, v);
-			du = duPatch(u, v);
-			dv = dvPatch(u, v);
-			cross = glm::cross(dv, du);
-			glNormal3f(cross.x, cross.y, cross.z);
+			normal = normalPatch(u, v);
+			glNormal3f(normal.x, normal.y, normal.z);
 			glVertex3f(point.x, point.y, point.z);
 			
-			point = evaluateBezierPatch(u+0.05, v);
-			du = duPatch(u+0.05, v);
-			dv = dvPatch(u+0.05, v);
-			cross = glm::cross(dv, du);
-			glNormal3f(cross.x, cross.y, cross.z);
+			point = evaluateBezierPatch(u+patchRes, v);
+			normal = normalPatch(u+patchRes, v);
+			glNormal3f(normal.x, normal.y, normal.z);
 			glVertex3f(point.x, point.y, point.z);
 		}
 		glEnd();
@@ -321,7 +319,6 @@ void generateEnvironmentDL()
 	glNewList(environmentDL, GL_COMPILE);
 	//drawCity();
 	//drawGrid();
-	renderBezierPatch();
 	glEndList();
 }
 
@@ -360,6 +357,7 @@ void updateKhanh()
 void renderScene(void)
 {
 	glCallList(environmentDL);
+	renderBezierPatch();
 	drawCoasterTrack();
 	drawMN();
 
@@ -479,26 +477,9 @@ void setupScene()
 	cameraTheta = 2.0f * M_PI / 3.0f;
 	cameraPhi = M_PI / 1.5f;
 	recomputeOrientation();
-	meyerSetUp();
-
+	MNSetUp();
 	srand(time(NULL)); // seed our random number generator
 	generateEnvironmentDL();
-}
-
-void moveVehicle(){
-	if (vMove != 0)
-		{
-			glm::vec3 vLocTest = vLoc + (float)vMove * vDir * 0.1f;
-			if (vLocTest.x > -30 && vLocTest.x < 30 && vLocTest.z > -30 && vLocTest.z < 30)
-			{
-				if (aRot > 2.0f * M_PI && vMove > 0)
-					aRot = 0.0f;
-				if (aRot < -2.0f * M_PI && vMove < 0)
-					aRot = 0.0f;
-				aRot -= vMove * 0.07;
-				vLoc = vLocTest;
-			}
-		}
 }
 
 ///*************************************************************************************
@@ -535,18 +516,19 @@ int main(int argc, char *argv[])
 		glDrawBuffer(GL_BACK);								// work with our back frame buffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the current color contents and depth buffer in the window
 
-		//Move the vehicle if it will stay within the boundry of the grid
-		moveVehicle();
-
 		//moveMascot();
 		//rotateCurve();
-
+		moveVehicle();
+		
+		
 		//Change the angle of the vehicle
 		if (vRot != 0)
 		{
 			vTheta += vRot * 0.05f;
 			recomputeVehicleDirection();
 		}
+		
+		
 
 		// update the projection matrix based on the window size
 		// the GL_PROJECTION matrix governs properties of the view coordinates;
@@ -574,7 +556,7 @@ int main(int argc, char *argv[])
 		switch (cameraNumber)
 		{
 		case 1:
-			viewMtx = glm::lookAt(camPos + vLoc, vLoc, glm::vec3(0, 1, 0));
+			viewMtx = glm::lookAt(camPos + vLocXYZ, vLocXYZ, glm::vec3(0, 1, 0));
 			break;
 		case 2:
 			viewMtx = glm::lookAt(camPos + carPos, carPos, glm::vec3(0, 1, 0));
