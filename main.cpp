@@ -70,6 +70,7 @@ float patchRes = 0.05;
 // Global for Cameras in RCT
 int cameraNumber = 1;
 int fpvCamera = 1;
+int view = 1;
 glm::vec3 fpvPos;
 bool FPV = false;
 
@@ -407,10 +408,15 @@ void renderScene(void)
 	glCallList(environmentDL);
 	renderBezierPatch();
 	drawCoasterTrack();
+
 	drawMN();
 
 	drawKD();
-	drawMV();
+
+	if (fpvCamera =! 3 && view =! 2)
+	{
+		drawMV();
+	}
 }
 
 //*************************************************************************************
@@ -623,6 +629,7 @@ int main(int argc, char *argv[])
 		// multiply by the look at matrix - this is the same as our view martix
 		glMultMatrixf(&viewMtx[0][0]);
 
+		view = 1;
 		renderScene(); // draw everything to the window
 		if (FPV)
 		{
@@ -651,6 +658,7 @@ int main(int argc, char *argv[])
 			}
 			glMultMatrixf(&fpvMtx[0][0]);
 
+			view = 2;
 			renderScene();
 			glDisable(GL_SCISSOR_TEST);
 		}
