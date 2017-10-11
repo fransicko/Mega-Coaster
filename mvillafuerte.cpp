@@ -38,6 +38,10 @@ bool hideControlPoint = false;
 bool hideControlCage = false;
 bool hideControlPath = false;
 
+vector<glm::vec3> arcPath;	// This is the vector to contain all the arc length points
+							// NOTE: since the t step is 0.1, in example, just multiple the point by 10
+							// Ex: t = 0.1 => arcPath.at(t*10) = arcPAth.at(1)
+
 bool loadControlPointsMV(char *filename)
 {
     // TODO #02: read in control points from file.  Make sure the file can be
@@ -69,6 +73,7 @@ bool loadControlPointsMV(char *filename)
     return true;
 }
 
+
 // Lab03
 // evaluateBezierCurve() ////////////////////////////////////////////////////////
 //
@@ -83,6 +88,32 @@ glm::vec3 evaluateBezierCurveM(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::ve
     point = pow((1 - t), 3) * p0 + 3 * pow((1 - t), 2) * t * p1 + 3 * (1 - t) * pow(t, 2) * p2 + pow(t, 3) * p3;
 
     return point;
+}
+
+// arcLengthCurveM() //////////////////////////////////////////////////////////
+//
+// Responsible for drawing he arc length curve
+//
+////////////////////////////////////////////////////////////////////////////////
+glm::vec3 lerp(glm::vec3 p0, glm::vec3 p1, float t) {
+	
+}
+
+// arcLengthCurveM() //////////////////////////////////////////////////////////
+//
+// Responsible for drawing he arc length curve
+//
+////////////////////////////////////////////////////////////////////////////////
+void arcLengthCurveM(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
+	// NOTE: Obtain s(t) to return the distance along the line at t
+	//		  Invert function to get s^-1(d) to return t such that f(t) is d units along the line
+	
+	float step = 0.1;
+	
+	// We first have to find the Bezier curve using a step of 0.1 then we add to arc vector
+	// We will have to redo the bezier curve but we will specify the t to 0.1. Then we will fill out table.
+	
+	
 }
 
 // renderBezierCurve() //////////////////////////////////////////////////////////
