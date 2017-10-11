@@ -85,6 +85,88 @@ bool FPV = false;
 ////////////////////////////////////////////////////////////////////////////////
 float getRand() { return rand() / (float)RAND_MAX; }
 
+bool loadControlPointsKD2(char *filename)
+{
+	// TODO #02: read in control points from file.  Make sure the file can be
+	// opened and handle it appropriately.
+
+	// Sanity check
+	fprintf(stdout, "LOADING ");
+	fprintf(stdout, filename);
+	fprintf(stdout, "...\n\n\n");
+
+	// Checking if it is .csv
+	string extension = "@@@@";
+	for (int i = 0; i < 4; i++)
+	{
+		extension[i] = filename[strlen(filename) - 4 + i];
+	}
+
+	if (extension != ".csv")
+	{
+		fprintf(stderr, "[ERROR]: INVALID FILE TYPE. ENSURE IT IS A .CSV\n");
+		exit(EXIT_FAILURE);
+	}
+
+	ifstream input(filename);
+	string line;
+
+	// Checking if file exists and was sucessfully opened
+	if (!input.is_open())
+	{
+		fprintf(stderr, "[ERROR]: UNABLE TO OPEN FILE\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Loading Bezier Patch
+	int k = 0;
+	input >> k;
+	for (int i = 0; i < k; i++)
+	{
+		string a, b, c;
+		getline(input, a, ',');
+		getline(input, b, ',');
+		getline(input, c);
+
+		stringstream aa(a);
+		stringstream bb(b);
+		stringstream cc(c);
+
+		int x, y, z = 0;
+		aa >> x;
+		bb >> y;
+		cc >> z;
+
+		p.push_back(glm::vec3(x, y, z));
+	}
+
+	// Loading Coaster Track
+	int n = 0;
+	input >> n;
+	for (int i = 0; i < n; i++)
+	{
+		string a, b, c;
+		getline(input, a, ',');
+		getline(input, b, ',');
+		getline(input, c);
+
+		stringstream aa(a);
+		stringstream bb(b);
+		stringstream cc(c);
+
+		int x, y, z = 0;
+		aa >> x;
+		bb >> y;
+		cc >> z;
+
+		coasterPoints.push_back(glm::vec3(x, y, z));
+	}
+	input.close();
+	populatePath(coasterPoints, coasterPath);
+
+	return true;
+}
+
 // recomputeOrientation() //////////////////////////////////////////////////////
 //
 // This function updates the camera's position in cartesian coordinates based
@@ -367,7 +449,7 @@ void drawCoasterTrack()
 	glLineWidth(1.0f);
 	glEnable(GL_LIGHTING);
 
-	for (unsigned int i = 0; i < coasterPath.size(); i+=5)
+	for (unsigned int i = 0; i < coasterPath.size(); i += 5)
 	{
 
 		glm::mat4 transMtx = glm::translate(glm::mat4(), coasterPath.at(i));
@@ -573,12 +655,12 @@ int main(int argc, char *argv[])
 
 	// Read control points from CSV file
 
-	loadControlPointsMN("controlPoints.csv");
+	//loadControlPointsMN("controlPoints.csv");
 	loadControlPointsKD("controlPointsSpiral.csv");
 	loadControlPointsMV("controlPoints13.csv");
 
 	// Read Coaster Path, create path vector
-	loadControlPointsKD("CoasterPoints.csv", coasterPoints, coasterPath);
+	loadControlPointsKD2("RCT.csv");
 
 	// GLFW sets up our OpenGL context so must be done first
 	GLFWwindow *window = setupGLFW(); // initialize all of the GLFW specific information releated to OpenGL and our window

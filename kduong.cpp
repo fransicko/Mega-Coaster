@@ -238,65 +238,6 @@ bool loadControlPointsKD(char *filename)
 	return true;
 }
 
-bool loadControlPointsKD(char *filename, vector<glm::vec3> &cPoints, vector<glm::vec3> &cPath)
-{
-	// TODO #02: read in control points from file.  Make sure the file can be
-	// opened and handle it appropriately.
-
-	// Sanity check
-	fprintf(stdout, "LOADING ");
-	fprintf(stdout, filename);
-	fprintf(stdout, "...\n\n\n");
-
-	// Checking if it is .csv
-	string extension = "@@@@";
-	for (int i = 0; i < 4; i++)
-	{
-		extension[i] = filename[strlen(filename) - 4 + i];
-	}
-
-	if (extension != ".csv")
-	{
-		fprintf(stderr, "[ERROR]: INVALID FILE TYPE. ENSURE IT IS A .CSV\n");
-		exit(EXIT_FAILURE);
-	}
-
-	ifstream input(filename);
-	string line;
-
-	// Checking if file exists and was sucessfully opened
-	if (!input.is_open())
-	{
-		fprintf(stderr, "[ERROR]: UNABLE TO OPEN FILE\n");
-		exit(EXIT_FAILURE);
-	}
-
-	int n = 0;
-	input >> n;
-	for (int i = 0; i < n; i++)
-	{
-		string a, b, c;
-		getline(input, a, ',');
-		getline(input, b, ',');
-		getline(input, c);
-
-		stringstream aa(a);
-		stringstream bb(b);
-		stringstream cc(c);
-
-		int x, y, z = 0;
-		aa >> x;
-		bb >> y;
-		cc >> z;
-
-		cPoints.push_back(glm::vec3(x, y, z));
-	}
-	input.close();
-	populatePath(cPoints, cPath);
-
-	return true;
-}
-
 void drawChassis()
 {
 	glm::mat4 transMtx = glm::translate(glm::mat4(), glm::vec3(0, 1, 0));
