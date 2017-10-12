@@ -655,7 +655,7 @@ int main(int argc, char *argv[])
 
 	// Read control points from CSV file
 
-	//loadControlPointsMN("controlPoints.csv");
+	loadControlPointsMN("controlPoints.csv");
 	loadControlPointsKD("controlPointsSpiral.csv");
 	loadControlPointsMV("controlPoints13.csv");
 
@@ -675,8 +675,8 @@ int main(int argc, char *argv[])
 		glDrawBuffer(GL_BACK);								// work with our back frame buffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the current color contents and depth buffer in the window
 
-		//moveMascot();
-		//rotateCurve();
+		moveMascot();
+		rotateCurve();
 		moveVehicle();
 
 		//Change the angle of the vehicle
