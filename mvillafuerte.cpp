@@ -156,12 +156,12 @@ void arcLengthCurveM(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, flo
                                  pow(arcTime, 2) * 3 * v1.z + pow(arcTime, 1) * 2 * v2.z + v3.z);
 
     // Now we calculate the new arcTime
-    arcTime = arcTime + 0.2f / (float)glm::length(fPrime);
+    arcTime = arcTime + 0.15f / (float)glm::length(fPrime);
     // Calculate the cureve first
     glm::vec3 point = evaluateBezierCurve(p0, p1, p2, p3, arcTime);
     arcPath.push_back(point); // the point in the curve
 
-    if (1.0f - arcTime > abs(0.0001))
+    if (1.0f - arcTime > abs(0.01))
     {
         arcLengthCurveM(p0, p1, p2, p3, arcTime);
     }

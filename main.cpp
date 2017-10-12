@@ -64,6 +64,7 @@ vector<glm::vec3> coasterPoints;
 vector<glm::vec3> coasterPath;
 int iteratorKD = 0;
 float prevDir = 0;
+float prevDirM = 0;
 
 float patchRes = 0.05;
 
@@ -449,7 +450,7 @@ void drawCoasterTrack()
 	glLineWidth(1.0f);
 	glEnable(GL_LIGHTING);
 
-	for (unsigned int i = 0; i < arcPath.size(); i += 1000)
+	for (unsigned int i = 0; i < arcPath.size(); i += 10)
 	{
 
 		glm::mat4 transMtx = glm::translate(glm::mat4(), arcPath.at(i));
@@ -472,7 +473,7 @@ void updateKhanh()
 {
 	iter = (iter + 1) % mascotPath.size();
 	wheelAng = fmod((wheelAng + 10.0f), 360.0f);
-	mascotAngle = fmod((mascotAngle + .02f), 360.0f);
+	mascotAngle = fmod((mascotAngle + .1f), 360.0f);
 
 	iteratorKD = (iteratorKD + 1) % coasterPath.size();
 	carPos = coasterPath.at(iteratorKD); // Updating Khanh's car, so camera can follow and to travel the track
@@ -480,10 +481,10 @@ void updateKhanh()
 	// Updating Khanh's car direction
 	glm::vec3 v1 = coasterPath.at((iteratorKD + 1) % coasterPath.size());
 	glm::vec3 v2 = coasterPath.at(iteratorKD);
-	glm::vec3 v3 = v2 - v1;
+	glm::vec3 v3 = v1 - v2;
 	// Restricting dot product / magnitude to 2D, y shouldn't affect rotation
 	// Also, take into account acos goes only from 0 to 180
-	float newDir = acos((v3.x * 0 + v3.z * -1) / sqrt(v3.x * v3.x + v3.z * v3.z)) * 180.0f / 3.14f;
+	float newDir = acos((v3.x * 0 + v3.z * 1) / sqrt(v3.x * v3.x + v3.z * v3.z)) * 180.0f / 3.14f;
 	if (newDir > prevDir)
 	{
 		carDir = 360.0f - newDir;
@@ -500,12 +501,12 @@ void updateMike()
 	++path;
 	++arcPos;
 
-	if (arcPos + 1 > (int)arcPath.size())
+	if (arcPos + 1 > (int)arcPath.size() - 1)
 	{
 		arcPos = 0;
 	}
 
-	if (path > (int)controlPath.size())
+	if (path > (int)controlPath.size() - 1)
 	{
 		path = 0;
 	}
@@ -514,19 +515,19 @@ void updateMike()
 	carPosM = arcPoint;
 	controlPoint = controlPath.at(path);
 
-	glm::vec3 v1 = arcPoint.at((arcPos + 1);
-	glm::vec3 v2 = coasterPath.at(arcPos);
+	glm::vec3 v1 = arcPath.at((arcPos));
+	glm::vec3 v2 = arcPath.at(arcPos + 1);
 	glm::vec3 v3 = v2 - v1;
-	float newDir = acos((v3.x * 0 + v3.z * -1) / sqrt(v3.x * v3.x + v3.z * v3.z)) * 180.0f / 3.14f;
-	if (newDir > prevDir)
+	float newDir = acos((v3.x * 0 + v3.z * 1) / sqrt(v3.x * v3.x + v3.z * v3.z));
+	if (newDir > prevDirM)
 	{
-		carTheta = 360.0f - newDir;
+		carTheta = 6.28318531f - newDir;
 	}
 	else
 	{
 		carTheta = newDir;
 	}
-	prevDir = newDir;
+	prevDirM = newDir;
 	//cout << "Main path: " << path << endl;
 }
 
@@ -787,7 +788,7 @@ int main(int argc, char *argv[])
 				fpvMtx = glm::lookAt(carPos + glm::vec3(0, 1.95, 0), carPos + t + glm::vec3(0, 1.95, 0), glm::vec3(0, 1, 0));
 				break;
 			case 3:
-				t = glm::vec3(glm::sin(carTheta * 3.14f / 180.0f), 0, glm::cos(carTheta * 3.14f / 180.0f));
+				t = glm::vec3(glm::sin(carTheta), 0, glm::cos(carTheta));
 				fpvMtx = glm::lookAt(carPosM + glm::vec3(0, 1, 0), carPosM + t + glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 				break;
 			}
