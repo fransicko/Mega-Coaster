@@ -21,3 +21,26 @@ CONTROLS
 		W/D : Move forward and backward with Michael Niemeyer's car.
 		A/S : Turn left and right with Michael Niemeyer's car.
 		Up/Down : Move Camera, only available in Free Camera mode.
+		
+WORLD FILE
+
+	Format:
+		<number of control points for Bezier Patch, recommend 16>
+		x1,y1,z1
+		...
+		xn,yn,zn
+		<number of control points for Bezier Curve for coaster>
+		x1,y1,z1
+		...
+		xn,yn,zn
+		<number of objects>
+		<object1 type>,x,y,z,<object1 size>
+		...
+		<objectn type>,x,y,z,<objectn size>
+		
+	Important: No white spaces
+	For object type, pass in an integer:
+		1 = Boulder
+		2 = Pyramid
+	x,y,z denotes location of object
+	

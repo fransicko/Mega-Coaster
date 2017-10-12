@@ -75,6 +75,9 @@ int view = 1;
 glm::vec3 fpvPos;
 bool FPV = false;
 
+// World Objects
+vector<vector<int> > world;
+
 //*************************************************************************************
 //
 // Helper Functions
@@ -162,8 +165,42 @@ bool loadControlPointsKD2(char *filename)
 
 		coasterPoints.push_back(glm::vec3(x, y, z));
 	}
-	input.close();
 	populatePath(coasterPoints, coasterPath);
+
+	// Loading World Objects
+	int q = 0;
+	input >> q;
+	for (int i = 0; i < q; i++)
+	{
+		string a, b, c, d, e;
+		getline(input, a, ',');
+		getline(input, b, ',');
+		getline(input, c, ',');
+		getline(input, d, ',');
+		getline(input, e);
+
+		stringstream aa(a);
+		stringstream bb(b);
+		stringstream cc(c);
+		stringstream dd(d);
+		stringstream ee(e);
+
+		int aaa, bbb, ccc, ddd, eee = 0;
+		aa >> aaa;
+		bb >> bbb;
+		cc >> ccc;
+		dd >> ddd;
+		ee >> eee;
+
+		vector<int> vec;
+		vec.push_back(aaa);
+		vec.push_back(bbb);
+		vec.push_back(ccc);
+		vec.push_back(ddd);
+		vec.push_back(eee);
+		world.push_back(vec);
+	}
+	input.close();
 
 	return true;
 }
@@ -438,7 +475,7 @@ void drawCoasterTrack()
 {
 	glDisable(GL_LIGHTING);
 	glLineWidth(5.0f);
-	glColor3f(1, 1, 0);
+	glColor3f(1, 0, 1);
 	for (unsigned int i = 0; i < coasterPoints.size() - 3; i += 3)
 	{
 		glm::vec3 v1 = coasterPoints.at(i);
@@ -460,11 +497,35 @@ void drawCoasterTrack()
 			glMultMatrixf(&scaleMtx[0][0]);
 			{
 				//glColor3f(216.0/255.0,101.0/255.0,101.0/255.0);
-				glColor3f(1, 1, 0);
+				glColor3f(1, 0, 1);
 				CSCI441::drawSolidCube(.1);
 			};
 			glMultMatrixf(&(glm::inverse(scaleMtx))[0][0]);
 		};
+		glMultMatrixf(&(glm::inverse(transMtx))[0][0]);
+	}
+}
+
+void drawWorldObjects()
+{
+	for (unsigned int i = 0; i < world.size(); i++)
+	{
+		vector<int> vec = world.at(i);
+		glm::mat4 transMtx = glm::translate(glm::mat4(), glm::vec3(vec.at(1), vec.at(2), vec.at(3)));
+		glMultMatrixf(&transMtx[0][0]);
+
+		{
+			if (vec.at(0) == 1)
+			{
+				glColor3f(.3, .3, .3);
+				CSCI441::drawSolidSphere(vec.at(4), 10, 10);
+			}
+			else if (vec.at(0) == 2)
+			{
+				glColor3f(1, 1, .1);
+				CSCI441::drawSolidCone(vec.at(4), vec.at(4), 4, 4);
+			}
+		}
 		glMultMatrixf(&(glm::inverse(transMtx))[0][0]);
 	}
 }
@@ -541,6 +602,7 @@ void renderScene(void)
 	glCallList(environmentDL);
 	renderBezierPatch();
 	drawCoasterTrack();
+	drawWorldObjects();
 
 	drawMN();
 
