@@ -449,10 +449,10 @@ void drawCoasterTrack()
 	glLineWidth(1.0f);
 	glEnable(GL_LIGHTING);
 
-	for (unsigned int i = 0; i < coasterPath.size(); i += 5)
+	for (unsigned int i = 0; i < arcPath.size(); i += 1000)
 	{
 
-		glm::mat4 transMtx = glm::translate(glm::mat4(), coasterPath.at(i));
+		glm::mat4 transMtx = glm::translate(glm::mat4(), arcPath.at(i));
 		glMultMatrixf(&transMtx[0][0]);
 		{
 			glm::mat4 scaleMtx = glm::scale(glm::mat4(), glm::vec3(10, 1, 10));
@@ -472,7 +472,7 @@ void updateKhanh()
 {
 	iter = (iter + 1) % mascotPath.size();
 	wheelAng = fmod((wheelAng + 10.0f), 360.0f);
-	mascotAngle = fmod((mascotAngle + .1f), 360.0f);
+	mascotAngle = fmod((mascotAngle + .02f), 360.0f);
 
 	iteratorKD = (iteratorKD + 1) % coasterPath.size();
 	carPos = coasterPath.at(iteratorKD); // Updating Khanh's car, so camera can follow and to travel the track
@@ -498,7 +498,7 @@ void updateKhanh()
 void updateMike()
 {
 	++path;
-	++arcPos;
+	arcPos+=1;
 	//cout << "Main path: " << path << endl;
 }
 

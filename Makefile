@@ -27,7 +27,7 @@ OBJECTS = main.o
 LOCAL_INC_PATH = C:\Users\michael\CSCI441\include
 LOCAL_LIB_PATH = C:\Users\michael\CSCI441\lib
 
-BUILDING_IN_LAB = 0
+BUILDING_IN_LAB = 1
 
 #########################################################################################
 #########################################################################################

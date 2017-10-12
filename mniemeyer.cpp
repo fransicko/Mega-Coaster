@@ -41,7 +41,7 @@ vector<glm::vec3> controlPoints;
 float mascotT;
 float mSpeed = 0.01;
 glm::vec3 mascotXYZ;
-float curveRot = M_PI/2.0f;
+float curveRot = M_PI / 2.0f;
 float cResolution = 0.1f;
 int currentPoint = 0;
 float extend = 0.0f;
@@ -55,8 +55,6 @@ float trackPointVal = 0.0f;
 
 bool showControl = false;
 int numLines;
-
-
 
 //Calculate each point to draw on the curve
 glm::vec3 evaluateBezierCurveMN(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, float t)
@@ -142,21 +140,29 @@ glm::vec3 crossPatch(glm::vec3 otherVector, float u, float v)
 //	the global variable controlPoints
 //
 ////////////////////////////////////////////////////////////////////////////////
-bool loadControlPointsMN( char* filename ) {
-	FILE *file = fopen(filename, "r");
-	if(file!=NULL){
-			fscanf(file, "%i", &numPoints);
-			for(int i = 0; i < numPoints; i++){
-				glm::vec3 v;
-				if(fscanf(file, "%f, %f, %f", &v.x, &v.y, &v.z) == 3){
-					center += v;
-					controlPoints.push_back(v);
-				}else return false;
-			}
-		center = center /(float) numPoints;
-		center.y = center.y - 2.5w;
-	}else return false;
-	return true;
+bool loadControlPointsMN(char *filename)
+{
+    FILE *file = fopen(filename, "r");
+    if (file != NULL)
+    {
+        fscanf(file, "%i", &numPoints);
+        for (int i = 0; i < numPoints; i++)
+        {
+            glm::vec3 v;
+            if (fscanf(file, "%f, %f, %f", &v.x, &v.y, &v.z) == 3)
+            {
+                center += v;
+                controlPoints.push_back(v);
+            }
+            else
+                return false;
+        }
+        center = center / (float)numPoints;
+        center.y = center.y - 2.5w;
+    }
+    else
+        return false;
+    return true;
 }
 
 // renderBezierCurve() //////////////////////////////////////////////////////////
@@ -166,20 +172,23 @@ bool loadControlPointsMN( char* filename ) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-void renderBezierCurve() {
-	glDisable(GL_LIGHTING);
-	glLineWidth(3.0f);
-	glColor3f(0, 0, 1);
-	glBegin(GL_LINE_STRIP);
-	for(int i = 1; i < numPoints; i += 3){
-		for(float t = 0; t < 1 + cResolution; t += cResolution){
-			glm::vec3 point = evaluateBezierCurveMN(controlPoints[i-1],
-			controlPoints[i], controlPoints[i+1], controlPoints[i+2], t);
-			glVertex3f(point.x, point.y, point.z);
-		}
-	}
-	glEnd();
-	glEnable(GL_LIGHTING);
+void renderBezierCurve()
+{
+    glDisable(GL_LIGHTING);
+    glLineWidth(3.0f);
+    glColor3f(0, 0, 1);
+    glBegin(GL_LINE_STRIP);
+    for (int i = 1; i < numPoints; i += 3)
+    {
+        for (float t = 0; t < 1 + cResolution; t += cResolution)
+        {
+            glm::vec3 point = evaluateBezierCurveMN(controlPoints[i - 1],
+                                                    controlPoints[i], controlPoints[i + 1], controlPoints[i + 2], t);
+            glVertex3f(point.x, point.y, point.z);
+        }
+    }
+    glEnd();
+    glEnable(GL_LIGHTING);
 }
 
 //Draw the lines conecting the control points
@@ -266,7 +275,6 @@ void drawVehicle()
     glColor3f(0.333, 0.420, 0.184);
     drawAxle(-0.75);
     glMultMatrixf(&(glm::inverse(rot))[0][0]);
-    
 }
 
 //Draws the main ball of the mascot
@@ -322,20 +330,20 @@ void drawCurve()
 }
 
 //Move the mascot around the curve
- void moveMascot()
+void moveMascot()
 {
-	mascotT += mSpeed;
-	if(mascotT >= (numPoints-1)/3) 
-		mascotT = 0;
-	int curve = (int) glm::floor(mascotT);
-    mascotXYZ = evaluateBezierCurveMN(controlPoints[3*curve], controlPoints[3*curve+1],
-	controlPoints[3*curve+2], controlPoints[3*curve+3], (float) mascotT - curve);
+    mascotT += mSpeed;
+    if (mascotT >= (numPoints - 1) / 3)
+        mascotT = 0;
+    int curve = (int)glm::floor(mascotT);
+    mascotXYZ = evaluateBezierCurveMN(controlPoints[3 * curve], controlPoints[3 * curve + 1],
+                                      controlPoints[3 * curve + 2], controlPoints[3 * curve + 3], (float)mascotT - curve);
     if (extend >= 0.7)
         extDir = -1.0f;
     if (extend <= 0.0)
         extDir = 1.0f;
     extend += 0.01 * extDir;
-} 
+}
 
 //Rotate the curve around the vehicle
 void rotateCurve()
@@ -343,36 +351,36 @@ void rotateCurve()
     if (curveRot >= 2.0 * M_PI)
         curveRot = 0;
     curveRot += 0.01;
-} 
+}
 
 void drawMN()
 {
     //Move vehicle
     glm::mat4 loc = glm::translate(glm::mat4(), vLocXYZ);
     glMultMatrixf(&loc[0][0]);
-	glm::mat4 orient = glm::rotate(glm::mat4(), vAngleRotate, vAxisRotate);
+    glm::mat4 orient = glm::rotate(glm::mat4(), vAngleRotate, vAxisRotate);
     glMultMatrixf(&orient[0][0]);
     glm::mat4 tranAway = glm::translate(glm::mat4(), glm::vec3(0, vSize, 0));
     glMultMatrixf(&tranAway[0][0]);
     drawVehicle();
     //center the curve's y location
-	glm::mat4 curve = glm::translate(glm::mat4(), -center);
+    glm::mat4 curve = glm::translate(glm::mat4(), -center);
     glMultMatrixf(&curve[0][0]);
     //Rotate the cureve around the z axis
-    glm::mat4 rotCurve = glm::rotate(glm::mat4(), (float) M_PI/2, glm::vec3(0, 0, 1));
+    glm::mat4 rotCurve = glm::rotate(glm::mat4(), (float)M_PI / 2, glm::vec3(0, 0, 1));
     glMultMatrixf(&rotCurve[0][0]);
-	drawCurve();
+    drawCurve();
     //Move the mascot along the curve
     glm::mat4 tran = glm::translate(glm::mat4(), mascotXYZ);
-	glMultMatrixf(&tran[0][0]);
-	glm::mat4 rotM = glm::rotate(glm::mat4(), curveRot, vAxisRotate);
+    glMultMatrixf(&tran[0][0]);
+    glm::mat4 rotM = glm::rotate(glm::mat4(), curveRot, vAxisRotate);
     glMultMatrixf(&rotM[0][0]);
-	drawMascot();
-	glMultMatrixf(&(inverse(rotM)[0][0]));
+    drawMascot();
+    glMultMatrixf(&(inverse(rotM)[0][0]));
     glMultMatrixf(&(inverse(tran)[0][0]));
     glMultMatrixf(&(inverse(rotCurve)[0][0]));
     glMultMatrixf(&(glm::inverse(curve))[0][0]);
-	glMultMatrixf(&(glm::inverse(tranAway))[0][0]);
+    glMultMatrixf(&(glm::inverse(tranAway))[0][0]);
     glMultMatrixf(&(glm::inverse(orient))[0][0]);
     glMultMatrixf(&(glm::inverse(loc))[0][0]);
 }
@@ -426,6 +434,6 @@ void MNSetUp()
 
     //Set the initial mascot location
     mascotT = 0;
-	mascotXYZ = evaluateBezierCurveMN(controlPoints[0],
-		controlPoints[1], controlPoints[2], controlPoints[3], mascotT);
+    mascotXYZ = evaluateBezierCurveMN(controlPoints[0],
+                                      controlPoints[1], controlPoints[2], controlPoints[3], mascotT);
 }
