@@ -172,7 +172,7 @@ void renderBezierCurve() {
 	glColor3f(0, 0, 1);
 	glBegin(GL_LINE_STRIP);
 	for(int i = 1; i < numPoints; i += 3){
-		for(float t = 0; t < 1; t += cResolution){
+		for(float t = 0; t < 1 + cResolution; t += cResolution){
 			glm::vec3 point = evaluateBezierCurveMN(controlPoints[i-1],
 			controlPoints[i], controlPoints[i+1], controlPoints[i+2], t);
 			glVertex3f(point.x, point.y, point.z);
@@ -189,12 +189,11 @@ void drawControl()
     glColor3f(1, 1, 0);
     glLineWidth(3.0f);
     glBegin(GL_LINE_STRIP);
-    for (int i = 0; i < (int)p.size(); i++)
+    for (int i = 0; i < numPoints; i++)
     {
-        glVertex3f(p.at(i).x, p.at(i).y, p.at(i).z);
+        glVertex3f(controlPoints.at(i).x, controlPoints.at(i).y, controlPoints.at(i).z);
     }
     glEnd();
-    glLineWidth(1.0f);
     glEnable(GL_LIGHTING);
 }
 
@@ -310,9 +309,9 @@ void drawCurve()
     if (showControl)
     {
         // Draw our control points
-        for (int i = 0; i < (int)p.size(); i++)
+        for (int i = 0; i < (int)controlPoints.size(); i++)
         {
-            drawPoint(p.at(i));
+            drawPoint(controlPoints.at(i));
         }
         // Connect our control points
         drawControl();
