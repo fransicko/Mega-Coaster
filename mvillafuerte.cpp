@@ -680,13 +680,7 @@ void drawCurveM()
             renderBezierCurveM(controlPointsM.at(i), controlPointsM.at(i + 1), controlPointsM.at(i + 2),
                                controlPointsM.at(i + 3), 100);
         }
-<<<<<<< HEAD
 	}
-	
-	// build the arc length
-=======
-    }
->>>>>>> 57135bfabb1e71f5a4081ee596df06481b81346c
 }
 
 // These functions will draw the car

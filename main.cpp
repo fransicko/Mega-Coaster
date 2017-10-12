@@ -660,9 +660,10 @@ int main(int argc, char *argv[])
 	loadControlPointsKD("controlPointsSpiral.csv");
 	loadControlPointsMV("controlPoints13.csv");
 
-	loadControlPointsKD("CoasterPoints.csv", coasterPoints, coasterPath);
-	readControlPointsMV(coasterPoints);
+	//loadControlPointsKD("CoasterPoints.csv", coasterPoints, coasterPath);
+	cout << "its the functions" << endl;
 	loadControlPointsKD2("RCT.csv");
+	readControlPointsMV(coasterPoints);
 
 	// GLFW sets up our OpenGL context so must be done first
 	GLFWwindow *window = setupGLFW(); // initialize all of the GLFW specific information releated to OpenGL and our window
