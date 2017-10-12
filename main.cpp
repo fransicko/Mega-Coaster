@@ -36,9 +36,9 @@
 #include <vector>  // for vector
 #include <cmath>   // for math
 
-#include "mniemeyer.cpp"
-#include "kduong.cpp"
-#include "mvillafuerte.cpp"
+#include "drawing/mniemeyer.cpp"
+#include "drawing/kduong.cpp"
+#include "drawing/mvillafuerte.cpp"
 using namespace std;
 //*************************************************************************************
 //
@@ -682,17 +682,20 @@ void setupScene()
 //
 int main(int argc, char *argv[])
 {
-
-	// Read control points from CSV file
-
-	loadControlPointsMN("controlPoints.csv");
-	loadControlPointsKD("controlPointsSpiral.csv");
-	loadControlPointsMV("controlPoints13.csv");
-
-	//loadControlPointsKD("CoasterPoints.csv", coasterPoints, coasterPath);
-	cout << "its the functions" << endl;
-	loadControlPointsKD2("RCT.csv");
-	readControlPointsMV(coasterPoints);
+	if (argc < 2)
+	{
+		std::cerr << "ERROR: NO CSV WAS SPECIFIED." << endl;
+		return -1;
+	}
+	else
+	{
+		// Read control points from CSV file
+		loadControlPointsMN("mascot/controlPoints.csv");
+		loadControlPointsKD("mascot/controlPointsSpiral.csv");
+		loadControlPointsMV("mascot/controlPoints13.csv");
+		loadControlPointsKD2(argv[1]);
+		readControlPointsMV(coasterPoints);
+	}
 
 	// GLFW sets up our OpenGL context so must be done first
 	GLFWwindow *window = setupGLFW(); // initialize all of the GLFW specific information releated to OpenGL and our window
