@@ -732,17 +732,5 @@ void drawMV()
     // Go by one percent of the line
     //calArcPath();
     //cout << "Size of arc path: " << arcPoint.size() << endl;
-    if (arcPos > (int)arcPath.size())
-    {
-        arcPos = 0;
-    }
-
-    if (path == (int)controlPath.size())
-    {
-        path = 0;
-    }
-    arcPoint = arcPath.at(arcPos);
-    carPosM = arcPoint;
-    controlPoint = controlPath.at(path);
     drawCarM();
 }

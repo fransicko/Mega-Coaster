@@ -498,7 +498,35 @@ void updateKhanh()
 void updateMike()
 {
 	++path;
-	arcPos+=1;
+	++arcPos;
+
+	if (arcPos + 1 > (int)arcPath.size())
+	{
+		arcPos = 0;
+	}
+
+	if (path > (int)controlPath.size())
+	{
+		path = 0;
+	}
+
+	arcPoint = arcPath.at(arcPos);
+	carPosM = arcPoint;
+	controlPoint = controlPath.at(path);
+
+	glm::vec3 v1 = arcPoint.at((arcPos + 1);
+	glm::vec3 v2 = coasterPath.at(arcPos);
+	glm::vec3 v3 = v2 - v1;
+	float newDir = acos((v3.x * 0 + v3.z * -1) / sqrt(v3.x * v3.x + v3.z * v3.z)) * 180.0f / 3.14f;
+	if (newDir > prevDir)
+	{
+		carTheta = 360.0f - newDir;
+	}
+	else
+	{
+		carTheta = newDir;
+	}
+	prevDir = newDir;
 	//cout << "Main path: " << path << endl;
 }
 
