@@ -394,6 +394,7 @@ void updateKhanh()
 void updateMike()
 {
 	++path;
+	++arcPos;
 	//cout << "Main path: " << path << endl;
 }
 
@@ -548,6 +549,9 @@ int main(int argc, char *argv[])
 
 	// Read Coaster Path, create path vector
 	loadControlPointsKD("CoasterPoints.csv", coasterPoints, coasterPath);
+	
+	// Read the Coaster Path and make the ArcLegth Path
+	readControlPointsMV(coasterPoints);
 
 	// GLFW sets up our OpenGL context so must be done first
 	GLFWwindow *window = setupGLFW(); // initialize all of the GLFW specific information releated to OpenGL and our window

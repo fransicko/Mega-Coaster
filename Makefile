@@ -24,10 +24,10 @@
 TARGET = rct
 OBJECTS = main.o
 
-LOCAL_INC_PATH = /Users/jpaone/Desktop/include
-LOCAL_LIB_PATH = /Users/jpaone/Desktop/lib
+LOCAL_INC_PATH = C:\Users\michael\CSCI441\include
+LOCAL_LIB_PATH = C:\Users\michael\CSCI441\lib
 
-BUILDING_IN_LAB = 1
+BUILDING_IN_LAB = 0
 
 #########################################################################################
 #########################################################################################

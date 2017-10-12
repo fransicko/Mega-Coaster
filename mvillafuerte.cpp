@@ -41,6 +41,9 @@ bool hideControlPath = false;
 vector<glm::vec3> arcPath;	// This is the vector to contain all the arc length points
 							// NOTE: since the t step is 0.1, in example, just multiple the point by 10
 							// Ex: t = 0.1 => arcPath.at(t*10) = arcPAth.at(1)
+glm::vec3 arcPoint; 
+int arcPos = 0;
+
 
 bool loadControlPointsMV(char *filename)
 {
@@ -74,6 +77,7 @@ bool loadControlPointsMV(char *filename)
 }
 
 
+
 // Lab03
 // evaluateBezierCurve() ////////////////////////////////////////////////////////
 //
@@ -96,24 +100,92 @@ glm::vec3 evaluateBezierCurveM(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::ve
 //
 ////////////////////////////////////////////////////////////////////////////////
 glm::vec3 lerp(glm::vec3 p0, glm::vec3 p1, float t) {
-	
+	return ((1 - t) * p0 + t*p1); 
 }
+
+/*
+void calArcPath() {
+	// Get teh percent that we are on teh path
+	double point = percent * (arcPath.size()-1);
+	
+	if ((double)(arcPath.size()-1) - point< abs(0.01)) {
+		arcPoint = arcPath.at(0);
+		percent = 0.01;
+		return;
+	}
+	// Find teh indences that the point is in.
+	int bottom = point;
+	int upper = bottom+1;
+	
+	arcPoint = lerp(arcPath.at(bottom), arcPath.at(upper), (float)(point - bottom) / (float)(upper - bottom));
+	
+	percent += 0.01;
+}
+*/
 
 // arcLengthCurveM() //////////////////////////////////////////////////////////
 //
 // Responsible for drawing he arc length curve
 //
 ////////////////////////////////////////////////////////////////////////////////
-void arcLengthCurveM(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3) {
+void arcLengthCurveM(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, float arcTime) {
 	// NOTE: Obtain s(t) to return the distance along the line at t
 	//		  Invert function to get s^-1(d) to return t such that f(t) is d units along the line
 	
-	float step = 0.1;
+	// These values are for calculating the f and f' functions
+	float x1 = -p0.x + 3*p1.x - 3*p2.x + p3.x;
+	float y1 = -p0.y + 3*p1.y - 3*p2.y + p3.y;
+	float z1 = -p0.z + 3*p1.z - 3*p2.z + p3.z;
+	glm::vec3 v1 = glm::vec3(x1, y1, z1);
 	
+	float x2 = 3*p0.x - 6*p1.x + 3*p2.x;
+	float y2 = 3*p0.y - 6*p1.y + 3*p2.y;
+	float z2 = 3*p0.z - 6*p1.z + 3*p2.z;
+	glm::vec3 v2 = glm::vec3(x2, y2, z2);
+	
+	float x3 = -3*p0.x + 3*p1.x;
+	float y3 = -3*p0.y + 3*p1.y;
+	float z3 = -3*p0.z + 3*p1.z;
+	glm::vec3 v3 = glm::vec3(x3, y3, z3);
+	/*
+	glm::vec3 f = glm::vec3(pow(arcTime, 3)*v1.x + pow(arcTime, 2)*v2.x + pow(arcTime, 1)*v3.x + p0.x,
+							pow(arcTime, 3)*v1.y + pow(arcTime, 2)*v2.y + pow(arcTime, 1)*v3.y + p0.y,
+							pow(arcTime, 3)*v1.z + pow(arcTime, 2)*v2.z + pow(arcTime, 1)*v3.z + p0.z);
+							*/
+	glm::vec3 fPrime = glm::vec3(pow(arcTime, 2)*3*v1.x + pow(arcTime, 1)*2*v2.x + v3.x,
+							pow(arcTime, 2)*3*v1.y + pow(arcTime, 1)*2*v2.y + v3.y,
+							pow(arcTime, 2)*3*v1.z + pow(arcTime, 1)*2*v2.z + v3.z);
+	
+	// Now we calculate the new arcTime
+	arcTime = arcTime + 0.5/glm::length(fPrime);
+	// Calculate the cureve first
+	glm::vec3 point = evaluateBezierCurve(p0, p1, p2, p3, arcTime);
+	arcPath.push_back(point); // the point in the curve
+	
+	if (1.0 - arcTime > abs(0.01)) {
+		arcLengthCurveM(p0, p1, p2, p3,arcTime);
+	}
+		
+	return;
 	// We first have to find the Bezier curve using a step of 0.1 then we add to arc vector
 	// We will have to redo the bezier curve but we will specify the t to 0.1. Then we will fill out table.
+}
+
+void readControlPointsMV(vector<glm::vec3> &cPoints) {
+	// Need to add this to the start of our path
+	arcPath.push_back(cPoints.at(0));
 	
+	// This will make teh curve with a step size of 0.1
+	for (unsigned int i = 0; i < cPoints.size() - 1; i += 3)
+	{
+		
+		arcLengthCurveM(cPoints.at(i), cPoints.at(i + 1), cPoints.at(i + 2),
+						  cPoints.at(i + 3), 0.0);
+	}
 	
+	// NOTE: So in the example on the slides d was teh last number of the table, which was the biggest one, times some % to go
+	// 		 that far along the curve
+	// So we have to go by % of the size of cPoints
 }
 
 // renderBezierCurve() //////////////////////////////////////////////////////////
@@ -607,12 +679,14 @@ void drawCurveM()
                               controlPointsM.at(i + 3), 100);
         }
 	}
+	
+	// build the arc length
 }
 
 // These functions will draw the car
 void drawCarM()
 {
-    glm::mat4 transCube = glm::translate(glm::mat4(), carPosM);
+    glm::mat4 transCube = glm::translate(glm::mat4(), arcPoint);
     glMultMatrixf(&transCube[0][0]);
     {
         glm::mat4 scaleTri = glm::scale(glm::mat4(), glm::vec3(1.0f, 1, 1.0f));
@@ -654,11 +728,20 @@ void drawCarM()
 
 void drawMV()
 {
+	
+	// Go by one percent of the line
+	//calArcPath();
+	//cout << "Size of arc path: " << arcPoint.size() << endl;
+	if (arcPos == (int)arcPath.size()) {
+		arcPos = 0;
+	}
+	
     if (path == (int)controlPath.size())
     {
-		cout << "control path size: " << (int)controlPath.size() << endl;
+		//cout << "control path size: " << (int)controlPath.size() << endl;
         path = 0;
     }
+	arcPoint = arcPath.at(arcPos);
     controlPoint = controlPath.at(path);
     drawCarM();
 }
