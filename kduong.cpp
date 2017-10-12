@@ -35,7 +35,6 @@ float mascotAngle = 0.0f;
 vector<glm::vec3> mascotPath;
 int iter = 0;
 
-
 // evaluateBezierCurve() ////////////////////////////////////////////////////////
 //
 // Computes a location along a Bezier Curve.
@@ -142,6 +141,7 @@ void drawCurvek()
 
 void populatePath()
 {
+	int maxSegment = 100;
 	for (unsigned int i = 0; i < controlPointsk.size() - 3; i += 3)
 	{
 		glm::vec3 v1 = controlPointsk.at(i);
@@ -149,8 +149,9 @@ void populatePath()
 		glm::vec3 v3 = controlPointsk.at(i + 2);
 		glm::vec3 v4 = controlPointsk.at(i + 3);
 		// Might look weird, ran into trouble with <= because of float precision, resorted to just <
-		for (float t = 0; t < 1.0f + 1.0f / 100.0f; t += 1.0f / 100.0f)
+		for (int j = 0; j < maxSegment; j++)
 		{
+			float t = (float)j / (float)maxSegment;
 			glm::vec3 nxt = evaluateBezierCurve(v1, v2, v3, v4, t);
 			mascotPath.push_back(nxt);
 		}
@@ -159,6 +160,7 @@ void populatePath()
 
 void populatePath(vector<glm::vec3> &cPoints, vector<glm::vec3> &cPath)
 {
+	int maxSegment = 200;
 	for (unsigned int i = 0; i < cPoints.size() - 3; i += 3)
 	{
 		glm::vec3 v1 = cPoints.at(i);
@@ -166,8 +168,9 @@ void populatePath(vector<glm::vec3> &cPoints, vector<glm::vec3> &cPath)
 		glm::vec3 v3 = cPoints.at(i + 2);
 		glm::vec3 v4 = cPoints.at(i + 3);
 		// Might look weird, ran into trouble with <= because of float precision, resorted to just <
-		for (float t = 0; t < 1.0f + 1.0f / 200.0f; t += 1.0f / 200.0f)
+		for (int j = 0; j < maxSegment; j++)
 		{
+			float t = (float)j / (float)maxSegment;
 			glm::vec3 nxt = evaluateBezierCurve(v1, v2, v3, v4, t);
 			cPath.push_back(nxt);
 		}
@@ -231,65 +234,6 @@ bool loadControlPointsKD(char *filename)
 	}
 	input.close();
 	populatePath();
-
-	return true;
-}
-
-bool loadControlPointsKD(char *filename, vector<glm::vec3> &cPoints, vector<glm::vec3> &cPath)
-{
-	// TODO #02: read in control points from file.  Make sure the file can be
-	// opened and handle it appropriately.
-
-	// Sanity check
-	fprintf(stdout, "LOADING ");
-	fprintf(stdout, filename);
-	fprintf(stdout, "...\n\n\n");
-
-	// Checking if it is .csv
-	string extension = "@@@@";
-	for (int i = 0; i < 4; i++)
-	{
-		extension[i] = filename[strlen(filename) - 4 + i];
-	}
-
-	if (extension != ".csv")
-	{
-		fprintf(stderr, "[ERROR]: INVALID FILE TYPE. ENSURE IT IS A .CSV\n");
-		exit(EXIT_FAILURE);
-	}
-
-	ifstream input(filename);
-	string line;
-
-	// Checking if file exists and was sucessfully opened
-	if (!input.is_open())
-	{
-		fprintf(stderr, "[ERROR]: UNABLE TO OPEN FILE\n");
-		exit(EXIT_FAILURE);
-	}
-
-	int n = 0;
-	input >> n;
-	for (int i = 0; i < n; i++)
-	{
-		string a, b, c;
-		getline(input, a, ',');
-		getline(input, b, ',');
-		getline(input, c);
-
-		stringstream aa(a);
-		stringstream bb(b);
-		stringstream cc(c);
-
-		int x, y, z = 0;
-		aa >> x;
-		bb >> y;
-		cc >> z;
-
-		cPoints.push_back(glm::vec3(x, y, z));
-	}
-	input.close();
-	populatePath(cPoints, cPath);
 
 	return true;
 }

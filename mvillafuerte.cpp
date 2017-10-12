@@ -197,33 +197,34 @@ void readControlPointsMV(vector<glm::vec3> &cPoints) {
 void renderBezierCurveM(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, int resolution)
 {
     // TODO #05: Draw the Bezier Curve!
-	float step = (float)1 / (float)resolution;
-	if (hideControlPath)
-	{
-		glColor3f(0, 0, 1);
-		glLineWidth(6.0);
-		glBegin(GL_LINE_STRIP);
-		{
-			for (float i = 0; i <= 1.0f + step; i += step)
-			{
-				glm::vec3 point = evaluateBezierCurve(p0, p1, p2, p3, i);
-				glVertex3f(point.x, point.y, point.z);
+    float step = (float)1 / (float)resolution;
+    if (hideControlPath)
+    {
+        glColor3f(0, 0, 1);
+        glLineWidth(6.0);
+        glBegin(GL_LINE_STRIP);
+        {
+            for (float i = 0; i <= 1.0f + step; i += step)
+            {
+                glm::vec3 point = evaluateBezierCurve(p0, p1, p2, p3, i);
+                glVertex3f(point.x, point.y, point.z);
 
-				if (i != 0)
-					controlPath.push_back(point); // the point in the curve
-			}
-		};
-		glEnd();
-	}
-	else {
-		for (float i = 0; i <= 1.0f + step; i += step)
-		{
-			glm::vec3 point = evaluateBezierCurve(p0, p1, p2, p3, i);
+                if (i != 0)
+                    controlPath.push_back(point); // the point in the curve
+            }
+        };
+        glEnd();
+    }
+    else
+    {
+        for (float i = 0; i <= 1.0f + step; i += step)
+        {
+            glm::vec3 point = evaluateBezierCurve(p0, p1, p2, p3, i);
 
-			if (i != 0)
-				controlPath.push_back(point); // the point in the curve
-		}
-	}
+            if (i != 0)
+                controlPath.push_back(point); // the point in the curve
+        }
+    }
 }
 
 void drawWheelsM()
@@ -667,20 +668,25 @@ void drawCurveM()
         for (int i = 0; i < numSegments - 1; i += 3)
         {
             renderBezierCurveM(controlPointsM.at(i), controlPointsM.at(i + 1), controlPointsM.at(i + 2),
-                              controlPointsM.at(i + 3), 100);
+                               controlPointsM.at(i + 3), 100);
         }
         glEnable(GL_LIGHTING);
         glLineWidth(1.0);
     }
-	else { // This is to tape the hole in the code, IT will move only if the curve was drawn. It was never drawn whe nthey don't show.
-		for (int i = 0; i < numSegments - 1; i += 3)
+    else
+    { // This is to tape the hole in the code, IT will move only if the curve was drawn. It was never drawn whe nthey don't show.
+        for (int i = 0; i < numSegments - 1; i += 3)
         {
             renderBezierCurveM(controlPointsM.at(i), controlPointsM.at(i + 1), controlPointsM.at(i + 2),
-                              controlPointsM.at(i + 3), 100);
+                               controlPointsM.at(i + 3), 100);
         }
+<<<<<<< HEAD
 	}
 	
 	// build the arc length
+=======
+    }
+>>>>>>> 57135bfabb1e71f5a4081ee596df06481b81346c
 }
 
 // These functions will draw the car
@@ -738,7 +744,6 @@ void drawMV()
 	
     if (path == (int)controlPath.size())
     {
-		//cout << "control path size: " << (int)controlPath.size() << endl;
         path = 0;
     }
 	arcPoint = arcPath.at(arcPos);

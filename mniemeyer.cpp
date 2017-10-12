@@ -35,7 +35,14 @@ float slow = 20000;
 float vAngleRotate;
 float vTheta;
 
-glm::vec3 mascotLoc;
+glm::vec3 center;
+int numPoints;
+vector<glm::vec3> controlPoints;
+float mascotT;
+float mSpeed = 0.01;
+glm::vec3 mascotXYZ;
+float curveRot = M_PI/2.0f;
+float cResolution = 0.1f;
 int currentPoint = 0;
 float extend = 0.0f;
 float extDir = 1.0f;
@@ -49,76 +56,84 @@ float trackPointVal = 0.0f;
 bool showControl = false;
 int numLines;
 
+
+
 //Calculate each point to draw on the curve
 glm::vec3 evaluateBezierCurveMN(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, float t)
-{    
-	glm::vec3 a, b, c, point;
-		a = -p0 + 3.0f*p1 - 3.0f*p2 + p3;
-		b = 3.0f*p0 - 6.0f*p1 + 3.0f*p2;
-		c = -3.0f*p0 + 3.0f*p1;	
+{
+    glm::vec3 a, b, c, point;
+    a = -p0 + 3.0f * p1 - 3.0f * p2 + p3;
+    b = 3.0f * p0 - 6.0f * p1 + 3.0f * p2;
+    c = -3.0f * p0 + 3.0f * p1;
     point = a * glm::pow(t, 3.0f) + b * glm::pow(t, 2.0f) + c * t + p0;
     return point;
 }
 
 //Calculate each vertex for the patch
-glm::vec3 evaluateBezierPatch(float u, float v){
-	glm::vec3 point = evaluateBezierCurveMN(
-		evaluateBezierCurveMN(p[0], p[1], p[2], p[3], u),
-		evaluateBezierCurveMN(p[4], p[5], p[6], p[7], u),
-		evaluateBezierCurveMN(p[8], p[9], p[10], p[11], u),
-		evaluateBezierCurveMN(p[12], p[13], p[14], p[15], u),
-		v);
-	return point;
+glm::vec3 evaluateBezierPatch(float u, float v)
+{
+    glm::vec3 point = evaluateBezierCurveMN(
+        evaluateBezierCurveMN(p[0], p[1], p[2], p[3], u),
+        evaluateBezierCurveMN(p[4], p[5], p[6], p[7], u),
+        evaluateBezierCurveMN(p[8], p[9], p[10], p[11], u),
+        evaluateBezierCurveMN(p[12], p[13], p[14], p[15], u),
+        v);
+    return point;
 }
 
 //Find d/dt of a Bezier Curve
 glm::vec3 dEvaluateBezierCurveMN(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, float t)
 {
-	glm::vec3 a, b, c, point;
-		a = -p0 + 3.0f*p1 - 3.0f*p2 + p3;
-		b = 3.0f*p0 - 6.0f*p1 + 3.0f*p2;
-		c = -3.0f*p0 + 3.0f*p1;	
-    point =  a * 3.0f * glm::pow(t, 2.0f) + b * 2.0f * t + c;
+    glm::vec3 a, b, c, point;
+    a = -p0 + 3.0f * p1 - 3.0f * p2 + p3;
+    b = 3.0f * p0 - 6.0f * p1 + 3.0f * p2;
+    c = -3.0f * p0 + 3.0f * p1;
+    point = a * 3.0f * glm::pow(t, 2.0f) + b * 2.0f * t + c;
     return point;
 }
 
 //Find d/du of the patch
-glm::vec3 duPatch(float u, float v){
-	glm::vec3 du = evaluateBezierCurveMN(
-		dEvaluateBezierCurveMN(p[0], p[1], p[2], p[3], u),
-		dEvaluateBezierCurveMN(p[4], p[5], p[6], p[7], u),
-		dEvaluateBezierCurveMN(p[8], p[9], p[10], p[11], u),
-		dEvaluateBezierCurveMN(p[12], p[13], p[14], p[15], u),
-		v);
-	return du;
+glm::vec3 duPatch(float u, float v)
+{
+    glm::vec3 du = evaluateBezierCurveMN(
+        dEvaluateBezierCurveMN(p[0], p[1], p[2], p[3], u),
+        dEvaluateBezierCurveMN(p[4], p[5], p[6], p[7], u),
+        dEvaluateBezierCurveMN(p[8], p[9], p[10], p[11], u),
+        dEvaluateBezierCurveMN(p[12], p[13], p[14], p[15], u),
+        v);
+    return du;
 }
 
 //Find d/dv of the patch
-glm::vec3 dvPatch(float u, float v){
-	glm::vec3 dv = dEvaluateBezierCurveMN(
-		evaluateBezierCurveMN(p[0], p[1], p[2], p[3], u),
-		evaluateBezierCurveMN(p[4], p[5], p[6], p[7], u),
-		evaluateBezierCurveMN(p[8], p[9], p[10], p[11], u),
-		evaluateBezierCurveMN(p[12], p[13], p[14], p[15], u),
-		v);
-	return dv;
+glm::vec3 dvPatch(float u, float v)
+{
+    glm::vec3 dv = dEvaluateBezierCurveMN(
+        evaluateBezierCurveMN(p[0], p[1], p[2], p[3], u),
+        evaluateBezierCurveMN(p[4], p[5], p[6], p[7], u),
+        evaluateBezierCurveMN(p[8], p[9], p[10], p[11], u),
+        evaluateBezierCurveMN(p[12], p[13], p[14], p[15], u),
+        v);
+    return dv;
 }
 
 //Find the normal of a vertex on the patch
-glm::vec3 normalPatch(float u, float v){
-	glm::vec3 dv = dvPatch(u, v);
-	glm::vec3 du = duPatch(u, v);
-	return glm::normalize(glm::cross(dv, du));
+glm::vec3 normalPatch(float u, float v)
+{
+    glm::vec3 dv = dvPatch(u, v);
+    glm::vec3 du = duPatch(u, v);
+    return glm::normalize(glm::cross(dv, du));
 }
 
 //Find the dot product with the normal of the patch at a point
-float dotPatch(glm::vec3 otherVector, float u, float v){
-	return glm::acos(glm::dot(otherVector, normalPatch(u, v)));
+float dotPatch(glm::vec3 otherVector, float u, float v)
+{
+    return glm::acos(glm::dot(otherVector, normalPatch(u, v)));
 }
 
 //Find the cross product with the normal of the patch at a point
-glm::vec3 crossPatch(glm::vec3 otherVector, float u, float v){
-	return glm::cross(otherVector, normalPatch(u, v));
+glm::vec3 crossPatch(glm::vec3 otherVector, float u, float v)
+{
+    return glm::cross(otherVector, normalPatch(u, v));
 }
 
 // loadControlPoints() /////////////////////////////////////////////////////////
@@ -127,27 +142,21 @@ glm::vec3 crossPatch(glm::vec3 otherVector, float u, float v){
 //	the global variable controlPoints
 //
 ////////////////////////////////////////////////////////////////////////////////
-bool loadControlPointsMN(char *filename)
-{
-    FILE *file = fopen(filename, "r");
-    if (file != NULL)
-    {
-        int numPoints;
-        fscanf(file, "%i", &numPoints);
-        if(numPoints % 16 != 0) return false;
-        for (int i = 0; i < numPoints * 16; i++)
-        {
-            glm::vec3 v;
-            if (fscanf(file, "%f, %f, %f", &v.x, &v.y, &v.z) == 3)
-            {
-                p.push_back(v);
-            }
-            else
-                return false;
-        }
-    }
-    else return false;
-    return true;
+bool loadControlPointsMN( char* filename ) {
+	FILE *file = fopen(filename, "r");
+	if(file!=NULL){
+			fscanf(file, "%i", &numPoints);
+			for(int i = 0; i < numPoints; i++){
+				glm::vec3 v;
+				if(fscanf(file, "%f, %f, %f", &v.x, &v.y, &v.z) == 3){
+					center += v;
+					controlPoints.push_back(v);
+				}else return false;
+			}
+		center = center /(float) numPoints;
+		center.y = center.y - 2.5w;
+	}else return false;
+	return true;
 }
 
 // renderBezierCurve() //////////////////////////////////////////////////////////
@@ -157,6 +166,21 @@ bool loadControlPointsMN(char *filename)
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+void renderBezierCurve() {
+	glDisable(GL_LIGHTING);
+	glLineWidth(3.0f);
+	glColor3f(0, 0, 1);
+	glBegin(GL_LINE_STRIP);
+	for(int i = 1; i < numPoints; i += 3){
+		for(float t = 0; t < 1 + cResolution; t += cResolution){
+			glm::vec3 point = evaluateBezierCurveMN(controlPoints[i-1],
+			controlPoints[i], controlPoints[i+1], controlPoints[i+2], t);
+			glVertex3f(point.x, point.y, point.z);
+		}
+	}
+	glEnd();
+	glEnable(GL_LIGHTING);
+}
 
 //Draw the lines conecting the control points
 void drawControl()
@@ -165,12 +189,11 @@ void drawControl()
     glColor3f(1, 1, 0);
     glLineWidth(3.0f);
     glBegin(GL_LINE_STRIP);
-    for (int i = 0; i < (int)p.size(); i++)
+    for (int i = 0; i < numPoints; i++)
     {
-        glVertex3f(p.at(i).x, p.at(i).y, p.at(i).z);
+        glVertex3f(controlPoints.at(i).x, controlPoints.at(i).y, controlPoints.at(i).z);
     }
     glEnd();
-    glLineWidth(1.0f);
     glEnable(GL_LIGHTING);
 }
 
@@ -235,20 +258,15 @@ void drawAxle(float loc)
 //Draw the vechicle the user moves around the city
 void drawVehicle()
 {
-	glm::mat4 orient = glm::rotate(glm::mat4(), vAngleRotate, vAxisRotate);
-	glMultMatrixf(&orient[0][0]);
-	glm::mat4 tranAway = glm::translate(glm::mat4(), glm::vec3(0, vSize, 0));
-	glMultMatrixf(&tranAway[0][0]);
     glm::mat4 rot = glm::rotate(glm::mat4(), vTheta, glm::vec3(0, 1, 0));
     glMultMatrixf(&rot[0][0]);
-	drawBody();
+    drawBody();
     glColor3f(0.863, 0.078, 0.235);
     drawAxle(0.75);
     glColor3f(0.333, 0.420, 0.184);
     drawAxle(-0.75);
     glMultMatrixf(&(glm::inverse(rot))[0][0]);
-	glMultMatrixf(&(glm::inverse(tranAway))[0][0]);
-	glMultMatrixf(&(glm::inverse(orient))[0][0]);
+    
 }
 
 //Draws the main ball of the mascot
@@ -291,113 +309,123 @@ void drawCurve()
     if (showControl)
     {
         // Draw our control points
-        for (int i = 0; i < (int)p.size(); i++)
+        for (int i = 0; i < (int)controlPoints.size(); i++)
         {
-            drawPoint(p.at(i));
+            drawPoint(controlPoints.at(i));
         }
         // Connect our control points
         drawControl();
 
-        /* //Draw the Bezier Curve!
-        for (int i = 0; i < (int)controlPoints.size() - 1; i += 3)
-        {
-            renderBezierCurve();
-        } */
+        //Draw the Bezier Curve!
+        renderBezierCurve();
     }
 }
 
-
-
 //Move the mascot around the curve
-/*  void moveMascot()
+ void moveMascot()
 {
-    if (currentPoint == (int)points.size() - 1)
-        currentPoint = 0;
-    mascotLoc = points[currentPoint];
-    currentPoint++;
+	mascotT += mSpeed;
+	if(mascotT >= (numPoints-1)/3) 
+		mascotT = 0;
+	int curve = (int) glm::floor(mascotT);
+    mascotXYZ = evaluateBezierCurveMN(controlPoints[3*curve], controlPoints[3*curve+1],
+	controlPoints[3*curve+2], controlPoints[3*curve+3], (float) mascotT - curve);
     if (extend >= 0.7)
         extDir = -1.0f;
     if (extend <= 0.0)
         extDir = 1.0f;
     extend += 0.01 * extDir;
-}  */
+} 
 
- //Rotate the curve around the vehicle
-/* void rotateCurve()
+//Rotate the curve around the vehicle
+void rotateCurve()
 {
     if (curveRot >= 2.0 * M_PI)
         curveRot = 0;
     curveRot += 0.01;
-}  */
+} 
 
 void drawMN()
 {
     //Move vehicle
     glm::mat4 loc = glm::translate(glm::mat4(), vLocXYZ);
     glMultMatrixf(&loc[0][0]);
+	glm::mat4 orient = glm::rotate(glm::mat4(), vAngleRotate, vAxisRotate);
+    glMultMatrixf(&orient[0][0]);
+    glm::mat4 tranAway = glm::translate(glm::mat4(), glm::vec3(0, vSize, 0));
+    glMultMatrixf(&tranAway[0][0]);
     drawVehicle();
     //center the curve's y location
-  //  glm::mat4 curveY = glm::translate(glm::mat4(), glm::vec3(0, -center.y, 0));
-  //  glMultMatrixf(&curveY[0][0]);
+	glm::mat4 curve = glm::translate(glm::mat4(), -center);
+    glMultMatrixf(&curve[0][0]);
     //Rotate the cureve around the z axis
-  //  glm::mat4 rotCurve = glm::rotate(glm::mat4(), curveRot, glm::vec3(0, 0, 1));
-  //  glMultMatrixf(&rotCurve[0][0]);
+    glm::mat4 rotCurve = glm::rotate(glm::mat4(), (float) M_PI/2, glm::vec3(0, 0, 1));
+    glMultMatrixf(&rotCurve[0][0]);
+	drawCurve();
     //Move the mascot along the curve
-   // glm::mat4 tran = glm::translate(glm::mat4(), mascotLoc);
-   //glMultMatrixf(&tran[0][0]);
-   // drawMascot();
-   // glMultMatrixf(&(inverse(tran)[0][0]));
-   // glMultMatrixf(&(inverse(rotCurve)[0][0]));
-   // glMultMatrixf(&(glm::inverse(curveY))[0][0]);
-	glMultMatrixf(&(glm::inverse(loc))[0][0]);
+    glm::mat4 tran = glm::translate(glm::mat4(), mascotXYZ);
+	glMultMatrixf(&tran[0][0]);
+	glm::mat4 rotM = glm::rotate(glm::mat4(), curveRot, vAxisRotate);
+    glMultMatrixf(&rotM[0][0]);
+	drawMascot();
+	glMultMatrixf(&(inverse(rotM)[0][0]));
+    glMultMatrixf(&(inverse(tran)[0][0]));
+    glMultMatrixf(&(inverse(rotCurve)[0][0]));
+    glMultMatrixf(&(glm::inverse(curve))[0][0]);
+	glMultMatrixf(&(glm::inverse(tranAway))[0][0]);
+    glMultMatrixf(&(glm::inverse(orient))[0][0]);
+    glMultMatrixf(&(glm::inverse(loc))[0][0]);
 }
 
 //Reorient the vehicle
 //Used after the vehicle moves
 void recomputeVehicleOrientation()
-{	
-	vAxisRotate = crossPatch(vUp, vLoc.x, vLoc.z);
-	vAngleRotate = dotPatch(vUp, vLoc.x, vLoc.z);
-	vLocXYZ = evaluateBezierPatch(vLoc.x, vLoc.z);
+{
+    vAxisRotate = crossPatch(vUp, vLoc.x, vLoc.z);
+    vAngleRotate = dotPatch(vUp, vLoc.x, vLoc.z);
+    vLocXYZ = evaluateBezierPatch(vLoc.x, vLoc.z);
 }
 
 //Recompute the direction vector when the A or D key is pressed
-void recomputeVehicleDirection(){
-	vDir = glm::vec3(-glm::sin(vTheta), 0, -glm::cos(vTheta));
+void recomputeVehicleDirection()
+{
+    vDir = glm::vec3(-glm::sin(vTheta), 0, -glm::cos(vTheta));
     //Normalize the direction vector
     vDir = glm::normalize(vDir);
 }
 
 //Move the vehicle if the W or S key is pressed
-void moveVehicle(){
-	if (vMove != 0)
-		{
-			glm::vec3 vLocTest;
-			vLocTest.x = vLoc.x + (float)vMove * vDir.x * (patchWidth/slow);
-			vLocTest.z = vLoc.z + (float)vMove * vDir.z * (patchLength/slow);
-			if (vLocTest.x > 0 && vLocTest.x < 1
-				&& vLocTest.z > 0 && vLocTest.z < 1)
-			{
-				if (aRot > 2.0f * M_PI && vMove > 0)
-					aRot = 0.0f;
-				if (aRot < -2.0f * M_PI && vMove < 0)
-					aRot = 0.0f;
-				aRot -= vMove * 0.07;
-				vLoc = vLocTest;
-				recomputeVehicleOrientation();
-			}
-		}
+void moveVehicle()
+{
+    if (vMove != 0)
+    {
+        glm::vec3 vLocTest;
+        vLocTest.x = vLoc.x + (float)vMove * vDir.x * (patchWidth / slow);
+        vLocTest.z = vLoc.z + (float)vMove * vDir.z * (patchLength / slow);
+        if (vLocTest.x > 0 && vLocTest.x < 1 && vLocTest.z > 0 && vLocTest.z < 1)
+        {
+            if (aRot > 2.0f * M_PI && vMove > 0)
+                aRot = 0.0f;
+            if (aRot < -2.0f * M_PI && vMove < 0)
+                aRot = 0.0f;
+            aRot -= vMove * 0.07;
+            vLoc = vLocTest;
+            recomputeVehicleOrientation();
+        }
+    }
 }
 
 void MNSetUp()
 {
-	
-	//Give the vehicle a starting point
-	vLoc = glm::vec3(0.5, 0, 0.5);    
+
+    //Give the vehicle a starting point
+    vLoc = glm::vec3(0.5, 0, 0.5);
     vTheta = 0;
-	recomputeVehicleDirection();
-	recomputeVehicleOrientation();
+    recomputeVehicleDirection();
+    recomputeVehicleOrientation();
 
     //Set the initial mascot location
-    //mascotLoc = controlPoints[0];
+    mascotT = 0;
+	mascotXYZ = evaluateBezierCurveMN(controlPoints[0],
+		controlPoints[1], controlPoints[2], controlPoints[3], mascotT);
 }

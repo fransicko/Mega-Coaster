@@ -70,6 +70,7 @@ float patchRes = 0.05;
 // Global for Cameras in RCT
 int cameraNumber = 1;
 int fpvCamera = 1;
+int view = 1;
 glm::vec3 fpvPos;
 bool FPV = false;
 
@@ -83,6 +84,88 @@ bool FPV = false;
 //
 ////////////////////////////////////////////////////////////////////////////////
 float getRand() { return rand() / (float)RAND_MAX; }
+
+bool loadControlPointsKD2(char *filename)
+{
+	// TODO #02: read in control points from file.  Make sure the file can be
+	// opened and handle it appropriately.
+
+	// Sanity check
+	fprintf(stdout, "LOADING ");
+	fprintf(stdout, filename);
+	fprintf(stdout, "...\n\n\n");
+
+	// Checking if it is .csv
+	string extension = "@@@@";
+	for (int i = 0; i < 4; i++)
+	{
+		extension[i] = filename[strlen(filename) - 4 + i];
+	}
+
+	if (extension != ".csv")
+	{
+		fprintf(stderr, "[ERROR]: INVALID FILE TYPE. ENSURE IT IS A .CSV\n");
+		exit(EXIT_FAILURE);
+	}
+
+	ifstream input(filename);
+	string line;
+
+	// Checking if file exists and was sucessfully opened
+	if (!input.is_open())
+	{
+		fprintf(stderr, "[ERROR]: UNABLE TO OPEN FILE\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Loading Bezier Patch
+	int k = 0;
+	input >> k;
+	for (int i = 0; i < k; i++)
+	{
+		string a, b, c;
+		getline(input, a, ',');
+		getline(input, b, ',');
+		getline(input, c);
+
+		stringstream aa(a);
+		stringstream bb(b);
+		stringstream cc(c);
+
+		int x, y, z = 0;
+		aa >> x;
+		bb >> y;
+		cc >> z;
+
+		p.push_back(glm::vec3(x, y, z));
+	}
+
+	// Loading Coaster Track
+	int n = 0;
+	input >> n;
+	for (int i = 0; i < n; i++)
+	{
+		string a, b, c;
+		getline(input, a, ',');
+		getline(input, b, ',');
+		getline(input, c);
+
+		stringstream aa(a);
+		stringstream bb(b);
+		stringstream cc(c);
+
+		int x, y, z = 0;
+		aa >> x;
+		bb >> y;
+		cc >> z;
+
+		coasterPoints.push_back(glm::vec3(x, y, z));
+	}
+	input.close();
+	populatePath(coasterPoints, coasterPath);
+
+	return true;
+}
 
 // recomputeOrientation() //////////////////////////////////////////////////////
 //
@@ -310,17 +393,19 @@ void drawCity()
 void renderBezierPatch()
 {
 	glm::vec3 point, normal;
-	glColor3f(1, 1, 1);
-	for(float u = 0; u <= 1; u += patchRes){
+	glColor3f(0, .5, 0);
+	for (float u = 0; u <= 1; u += patchRes)
+	{
 		glBegin(GL_TRIANGLE_STRIP);
-		for(float v = 0; v <= 1 + patchRes; v += patchRes){
+		for (float v = 0; v <= 1 + patchRes; v += patchRes)
+		{
 			point = evaluateBezierPatch(u, v);
 			normal = normalPatch(u, v);
 			glNormal3f(normal.x, normal.y, normal.z);
 			glVertex3f(point.x, point.y, point.z);
-			
-			point = evaluateBezierPatch(u+patchRes, v);
-			normal = normalPatch(u+patchRes, v);
+
+			point = evaluateBezierPatch(u + patchRes, v);
+			normal = normalPatch(u + patchRes, v);
 			glNormal3f(normal.x, normal.y, normal.z);
 			glVertex3f(point.x, point.y, point.z);
 		}
@@ -352,6 +437,7 @@ void drawCoasterTrack()
 {
 	glDisable(GL_LIGHTING);
 	glLineWidth(5.0f);
+	glColor3f(1, 1, 0);
 	for (unsigned int i = 0; i < coasterPoints.size() - 3; i += 3)
 	{
 		glm::vec3 v1 = coasterPoints.at(i);
@@ -362,6 +448,24 @@ void drawCoasterTrack()
 	}
 	glLineWidth(1.0f);
 	glEnable(GL_LIGHTING);
+
+	for (unsigned int i = 0; i < coasterPath.size(); i += 5)
+	{
+
+		glm::mat4 transMtx = glm::translate(glm::mat4(), coasterPath.at(i));
+		glMultMatrixf(&transMtx[0][0]);
+		{
+			glm::mat4 scaleMtx = glm::scale(glm::mat4(), glm::vec3(10, 1, 10));
+			glMultMatrixf(&scaleMtx[0][0]);
+			{
+				//glColor3f(216.0/255.0,101.0/255.0,101.0/255.0);
+				glColor3f(1, 1, 0);
+				CSCI441::drawSolidCube(.1);
+			};
+			glMultMatrixf(&(glm::inverse(scaleMtx))[0][0]);
+		};
+		glMultMatrixf(&(glm::inverse(transMtx))[0][0]);
+	}
 }
 
 void updateKhanh()
@@ -408,10 +512,19 @@ void renderScene(void)
 	glCallList(environmentDL);
 	renderBezierPatch();
 	drawCoasterTrack();
+
 	drawMN();
 
 	drawKD();
-	drawMV();
+
+	if (fpvCamera == 3 && view == 2)
+	{
+		// Do Nothing
+	}
+	else
+	{
+		drawMV();
+	}
 }
 
 //*************************************************************************************
@@ -547,11 +660,9 @@ int main(int argc, char *argv[])
 	loadControlPointsKD("controlPointsSpiral.csv");
 	loadControlPointsMV("controlPoints13.csv");
 
-	// Read Coaster Path, create path vector
 	loadControlPointsKD("CoasterPoints.csv", coasterPoints, coasterPath);
-	
-	// Read the Coaster Path and make the ArcLegth Path
 	readControlPointsMV(coasterPoints);
+	loadControlPointsKD2("RCT.csv");
 
 	// GLFW sets up our OpenGL context so must be done first
 	GLFWwindow *window = setupGLFW(); // initialize all of the GLFW specific information releated to OpenGL and our window
@@ -566,19 +677,16 @@ int main(int argc, char *argv[])
 		glDrawBuffer(GL_BACK);								// work with our back frame buffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the current color contents and depth buffer in the window
 
-		//moveMascot();
-		//rotateCurve();
+		moveMascot();
+		rotateCurve();
 		moveVehicle();
-		
-		
+
 		//Change the angle of the vehicle
 		if (vRot != 0)
 		{
 			vTheta += vRot * 0.05f;
 			recomputeVehicleDirection();
 		}
-		
-		
 
 		// Update global constants for animation
 		updateKhanh();
@@ -627,6 +735,7 @@ int main(int argc, char *argv[])
 		// multiply by the look at matrix - this is the same as our view martix
 		glMultMatrixf(&viewMtx[0][0]);
 
+		view = 1;
 		renderScene(); // draw everything to the window
 		if (FPV)
 		{
@@ -642,7 +751,7 @@ int main(int argc, char *argv[])
 			switch (fpvCamera)
 			{
 			case 1:
-				fpvMtx = glm::lookAt(vLoc + glm::vec3(0, .5, 0), vLoc + vDir + glm::vec3(0, .5, 0), glm::vec3(0, 1, 0));
+				fpvMtx = glm::lookAt(vLocXYZ + glm::vec3(0, .8, 0), vLocXYZ + vDir + glm::vec3(0, .8, 0), glm::vec3(0, 1, 0));
 				break;
 			case 2:
 				t = glm::vec3(glm::sin(carDir * 3.14f / 180.0f), 0, glm::cos(carDir * 3.14f / 180.0f));
@@ -655,6 +764,7 @@ int main(int argc, char *argv[])
 			}
 			glMultMatrixf(&fpvMtx[0][0]);
 
+			view = 2;
 			renderScene();
 			glDisable(GL_SCISSOR_TEST);
 		}
