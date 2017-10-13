@@ -10,10 +10,10 @@ DESCRIPTION
 		This code will display a cloased C^0 and C^1 curves that will allow two of our heros to travers in a scenic enviroment.
 	One hero, Micael Villafuerte's, will go along the track following a arc-length parameterization of the Bezier curve,
 	while the other hero, Khanh Duong's, will follow the standard Bezier curve. 
-		The user has the ability to move around the 
-	terrain comrpised of Bezier Surfaces in Michael Niemeyer's hero. Along with that the user has the ability to switch between 
-	different camera angles. These angles are of the different hero's that are moving on the track, on the ground,and one free 
-	camera to allow the user to wander around. Should the user want to they can see what the hero see's in first person view.
+		The user has the ability to move around the terrain comrpised of Bezier Surfaces in Michael Niemeyer's hero. Along with
+	that the user has the ability to switch between different camera angles. These angles are of the different hero's that are
+	moving on the track, on the ground,and one free camera to allow the user to wander around. Should the user want to they can
+	see what the hero see's in first person view.
 
 CONTROLS
 
@@ -80,6 +80,9 @@ INSTRUCTION
 MISC
 
 	The assignment took roughly 20 hours, split among all members.
+		Michael Niemeyer = 6
+		Michael Villafuerte = 6
+		Khanh Duong = 8
 	Both the lab and homework help tremendously in doing the project. Doing the extra credits in particular for the assignments really paid off.
 	10 points for both categories.
 	"Fun" aspect of this assignment is difficult to gauge. On one hand, it was interactive and interesting, but it came at a time that was hectic.
