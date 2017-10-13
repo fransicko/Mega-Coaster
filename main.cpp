@@ -4,7 +4,7 @@
  *  Project: A4
  *  File: main.cpp
  *
- *  Author: Michael Niemeyer
+ *  
  *	
  *  Description:
  *	Draw a moving mascot around the vehicle. 
@@ -651,7 +651,7 @@ GLFWwindow *setupGLFW()
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);	// do not allow our window to be able to be resized
 
 	// create a window for a given size, with a given title
-	GLFWwindow *window = glfwCreateWindow(windowWidth, windowHeight, "Mascot", NULL, NULL);
+	GLFWwindow *window = glfwCreateWindow(windowWidth, windowHeight, "RCT", NULL, NULL);
 	if (!window)
 	{ // if the window could not be created, NULL is returned
 		fprintf(stderr, "[ERROR]: GLFW Window could not be created\n");
